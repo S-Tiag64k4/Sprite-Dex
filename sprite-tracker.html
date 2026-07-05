@@ -1,0 +1,1682 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Sprite Dex</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Sprite Dex">
+<meta name="theme-color" content="#0B0D14">
+<meta name="description" content="Suivi de collection Sprite Dex — progression, statistiques, carte et succès.">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%230B0D14'/%3E%3Ctext x='50' y='66' font-size='58' text-anchor='middle'%3E%E2%9C%A8%3C/text%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%230B0D14'/%3E%3Ctext x='50' y='66' font-size='58' text-anchor='middle'%3E%E2%9C%A8%3C/text%3E%3C/svg%3E">
+
+<!-- Polices : Space Grotesk (titres/UI), Inter (texte courant), JetBrains Mono (données/taux) -->
+<!-- Chargées en amélioration progressive : si hors-ligne, repli automatique sur les polices système ci-dessous -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+
+<style>
+/* ============================================================
+   0. TOKENS — palette, typographie, rayons, ombres, durées
+   ============================================================ */
+:root{
+  color-scheme: dark;
+  /* Fond */
+  --bg-0:#0B0D14; --bg-1:#12151F; --bg-2:#171B29; --bg-glass: rgba(255,255,255,0.045);
+  --border: rgba(255,255,255,0.08); --border-strong: rgba(255,255,255,0.14);
+  /* Texte */
+  --text-0:#EDEFF4; --text-1:#AEB4C4; --text-2:#767E92;
+  /* Accents (liés aux variantes du jeu — signature de l'app) */
+  --c-purple:#7C6AE8; --c-pink:#E85D9C; --c-gold:#E8B84B; --c-green:#8FE0A0;
+  --grad-aura: linear-gradient(135deg,var(--c-purple),var(--c-pink) 55%,var(--c-gold));
+  /* Raretés */
+  --r-rare:#5DA9E8; --r-epic:#B36AE8; --r-legend:#E8A23A; --r-mythic:#E85D5D;
+  /* Rayons / ombres / durées */
+  --rad-s:10px; --rad-m:16px; --rad-l:22px; --rad-xl:28px;
+  --sh-1: 0 1px 2px rgba(0,0,0,.4);
+  --sh-2: 0 8px 24px -8px rgba(0,0,0,.55);
+  --sh-glow-purple: 0 0 0 1px rgba(124,106,232,.25), 0 8px 28px -6px rgba(124,106,232,.35);
+  --ease: cubic-bezier(.22,1,.36,1);
+  --dur-s:.16s; --dur-m:.32s; --dur-l:.5s;
+  /* Typo */
+  --f-display:'Space Grotesk', ui-rounded, 'SF Pro Rounded', system-ui, sans-serif;
+  --f-body:'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --f-mono:'JetBrains Mono', ui-monospace, 'SF Mono', monospace;
+  /* Taille de texte utilisateur (ajustée en JS : 15 / 16.5 / 18.5) */
+  --fs-root: 16px;
+}
+html[data-theme="light"]{
+  color-scheme: light;
+  --bg-0:#F3F1FA; --bg-1:#FFFFFF; --bg-2:#FBFAFF; --bg-glass: rgba(20,16,50,0.035);
+  --border: rgba(20,16,60,0.09); --border-strong: rgba(20,16,60,0.16);
+  --text-0:#181A2A; --text-1:#4E5266; --text-2:#8286A0;
+  --sh-1: 0 1px 2px rgba(30,20,80,.06);
+  --sh-2: 0 10px 26px -10px rgba(30,20,80,.18);
+}
+
+*{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
+html{ font-size: var(--fs-root); }
+body{
+  margin:0; min-height:100vh; color:var(--text-0); font-family: var(--f-body);
+  background:
+    radial-gradient(ellipse 900px 600px at 20% -10%, rgba(124,106,232,.16), transparent 60%),
+    radial-gradient(ellipse 700px 500px at 100% 0%, rgba(232,93,156,.10), transparent 55%),
+    var(--bg-0);
+  transition: background-color var(--dur-m) var(--ease), color var(--dur-m) var(--ease);
+  overscroll-behavior-y: none;
+}
+h1,h2,h3,.disp{ font-family: var(--f-display); letter-spacing:-0.01em; }
+.mono{ font-family: var(--f-mono); font-feature-settings:"tnum" 1; }
+button, input{ font-family: inherit; color: inherit; }
+button{ -webkit-appearance:none; appearance:none; background:none; border:none; cursor:pointer; transition: transform var(--dur-s) var(--ease); }
+button:active{ transform: scale(.94); }
+::selection{ background: rgba(124,106,232,.35); }
+:focus-visible{ outline: 2px solid var(--c-purple); outline-offset: 2px; border-radius: 6px; }
+a{ color: var(--c-purple); }
+::-webkit-scrollbar{ width:0; height:0; }
+
+/* Respect du mode "réduire les animations" */
+@media (prefers-reduced-motion: reduce){
+  *{ animation-duration:.001ms !important; transition-duration:.001ms !important; }
+}
+/* Même effet, mais activable manuellement depuis les Paramètres de l'app,
+   indépendamment du réglage global du système. */
+html.force-reduced-motion *{ animation-duration:.001ms !important; transition-duration:.001ms !important; }
+
+/* Mode compact : listes plus denses, notes de Sprite masquées */
+html.compact .sc-note{ display:none; }
+html.compact .sprite-card{ padding:9px 12px; }
+html.compact .emoji-box{ width:38px; height:38px; font-size:1.1rem; }
+
+/* ============================================================
+   1. SHELL — conteneur, en-tête, navigation basse
+   ============================================================ */
+.app{ max-width: 720px; margin:0 auto; min-height:100vh; position:relative; padding-bottom: calc(78px + env(safe-area-inset-bottom)); }
+
+.topbar{
+  position:sticky; top:0; z-index:20; padding: calc(14px + env(safe-area-inset-top)) 18px 12px;
+}
+.topbar::before{
+  content:"";
+  position:absolute; inset:0; z-index:-1;
+  background: linear-gradient(var(--bg-0) 55%, transparent);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  /* Le fond (couleur) et le flou d'arri\u00e8re-plan s'appliquaient auparavant sur toute la hauteur
+     de l'en-t\u00eate de la m\u00eame fa\u00e7on : la couleur s'estompait en d\u00e9grad\u00e9, mais le flou, lui,
+     s'arr\u00eatait net \u00e0 la limite du bloc, ce qui cr\u00e9ait une ligne visible entre "flou" et "net"
+     quand le contenu d\u00e9filait dessous. Le masque applique le m\u00eame d\u00e9grad\u00e9 au flou lui-m\u00eame,
+     pour que les deux s'estompent ensemble. Ce fond est isol\u00e9 dans un calque \u00e0 part (::before)
+     plut\u00f4t que directement sur .topbar, pour que le masque ne touche jamais le texte du titre. */
+  mask-image: linear-gradient(black 55%, transparent 100%);
+  -webkit-mask-image: linear-gradient(black 55%, transparent 100%);
+}
+.topbar .eyebrow{ display:flex; align-items:center; gap:8px; font-size:.72rem; letter-spacing:.12em; text-transform:uppercase; color:var(--c-purple); font-weight:600; }
+.topbar h1{ font-size:1.7rem; font-weight:700; margin:2px 0 0; display:flex; align-items:center; gap:10px; }
+.topbar .back-btn{ width:36px; height:36px; border-radius:50%; background:var(--bg-glass); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; }
+
+.page{ padding: 4px 18px 8px; overflow-x: hidden; }
+.page-fade{ animation: pageIn var(--dur-m) var(--ease); }
+@keyframes pageIn{ from{ opacity:0; transform: translateY(8px); } to{ opacity:1; transform:none; } }
+.page-slide-right{ animation: slideInRight .45s cubic-bezier(.16,1,.3,1); }
+.page-slide-left{ animation: slideInLeft .45s cubic-bezier(.16,1,.3,1); }
+@keyframes slideInRight{ from{ opacity:0; transform: translateX(70px); } to{ opacity:1; transform:none; } }
+@keyframes slideInLeft{ from{ opacity:0; transform: translateX(-70px); } to{ opacity:1; transform:none; } }
+
+.navbar{
+  position:fixed; left:0; right:0; bottom:0; z-index:30; max-width:720px; margin:0 auto;
+  display:flex; justify-content:space-around; align-items:center;
+  padding: 8px 6px calc(8px + env(safe-area-inset-bottom));
+  background: rgba(18,21,31,.72); backdrop-filter: blur(18px) saturate(160%);
+  border-top:1px solid var(--border);
+}
+html[data-theme="light"] .navbar{ background: rgba(255,255,255,.78); }
+.nav-btn{ display:flex; flex-direction:column; align-items:center; gap:3px; padding:6px 10px; border-radius: var(--rad-m); color:var(--text-2); flex:1; transition: color var(--dur-s), background var(--dur-s); position:relative; }
+.nav-btn svg{ width:22px; height:22px; transition: transform var(--dur-s) var(--ease); }
+.nav-btn span{ font-size:.62rem; font-weight:600; font-family:var(--f-display); letter-spacing:.02em; }
+.nav-btn.active{ color: var(--c-purple); }
+.nav-btn.active svg{ transform: translateY(-2px) scale(1.05); }
+.nav-btn:active svg{ transform: scale(.88); }
+.nav-dot{ position:absolute; top:2px; width:5px; height:5px; border-radius:50%; background:var(--c-pink); box-shadow:0 0 6px var(--c-pink); }
+
+/* ============================================================
+   2. PRIMITIVES — cartes, puces, switches, boutons
+   ============================================================ */
+.glass{
+  background: linear-gradient(180deg, var(--bg-glass), transparent), var(--bg-1);
+  border:1px solid var(--border); border-radius: var(--rad-l); box-shadow: var(--sh-1);
+}
+.section-card{ padding:18px 18px 20px; margin:14px 0; }
+.section-title{ font-size:.92rem; font-weight:700; margin:0 0 12px; display:flex; align-items:center; gap:8px; }
+.section-title .ico{ width:18px; height:18px; color:var(--c-purple); }
+
+.btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:8px;
+  padding:11px 18px; border-radius:999px; font-weight:600; font-size:.85rem;
+  transition: transform var(--dur-s) var(--ease), box-shadow var(--dur-s), background var(--dur-s), opacity var(--dur-s);
+}
+.btn:active{ transform: scale(.96); }
+.btn-primary{ background: var(--grad-aura); color:#fff; box-shadow: var(--sh-glow-purple); }
+.btn-ghost{ background: var(--bg-glass); border:1px solid var(--border); color:var(--text-0); }
+.btn-block{ width:100%; }
+
+.chip{
+  border:1px solid var(--border); color:var(--text-1); border-radius:999px; padding:7px 14px;
+  font-size:.78rem; font-weight:600; white-space:nowrap; transition: all var(--dur-s) var(--ease);
+}
+.chip.active{ color:#fff; border-color:transparent; }
+.chip-row{ display:flex; gap:8px; overflow-x:auto; padding-bottom:2px; margin-bottom:14px; scrollbar-width:none; }
+
+.switch{ width:44px; height:26px; border-radius:999px; background:var(--bg-glass); border:1px solid var(--border); position:relative; transition: background var(--dur-s); flex-shrink:0; }
+.switch.on{ background: var(--grad-aura); border-color:transparent; }
+.switch .knob{ position:absolute; top:2px; left:2px; width:20px; height:20px; border-radius:50%; background:#fff; box-shadow:var(--sh-1); transition: transform var(--dur-m) var(--ease); }
+.switch.on .knob{ transform: translateX(18px); }
+
+.segmented{ display:flex; background:var(--bg-glass); border:1px solid var(--border); border-radius:999px; padding:3px; }
+.segmented button{ flex:1; padding:8px 6px; border-radius:999px; font-size:.76rem; font-weight:600; color:var(--text-2); transition: all var(--dur-s) var(--ease); }
+.segmented button.active{ background:var(--bg-1); color:var(--text-0); box-shadow:var(--sh-1); }
+
+.search-bar{ display:flex; align-items:center; gap:10px; background:var(--bg-glass); border:1px solid var(--border); border-radius:999px; padding:11px 16px; margin-bottom:14px; }
+.search-bar svg{ width:17px; height:17px; color:var(--text-2); flex-shrink:0; }
+.search-bar input{ flex:1; background:none; border:none; outline:none; font-size:.9rem; color:var(--text-0); min-width:0; }
+.search-bar input::placeholder{ color:var(--text-2); }
+.search-bar .clear-x{ color:var(--text-2); font-size:1rem; padding:2px; transition: opacity var(--dur-s) var(--ease), transform var(--dur-s) var(--ease); }
+
+/* Utilitaire générique : fait entrer un élément en fondu + léger décalage vers le haut.
+   Utilisé sur les listes (Sprites, succès, stats...) avec un animation-delay croissant
+   par élément, pour un effet "cascade" à l'apparition plutôt qu'un bloc figé. */
+.stagger-in{ animation: fadeUp var(--dur-m) var(--ease) both; }
+
+/* ============================================================
+   3. HOME
+   ============================================================ */
+.ring-wrap{ display:flex; flex-direction:column; align-items:center; gap:6px; padding:8px 0 4px; }
+.ring-num{ font-family:var(--f-display); font-weight:700; font-size:2.5rem; letter-spacing:-0.03em; }
+.ring-num .of{ font-size:1.1rem; color:var(--text-2); font-weight:600; }
+.ring-cap{ font-size:.78rem; color:var(--text-1); }
+
+.stat-grid{ display:grid; grid-template-columns: repeat(2,1fr); gap:10px; margin-top:14px; }
+.stat-mini{ padding:12px 14px; border-radius: var(--rad-m); background:var(--bg-glass); border:1px solid var(--border); }
+.stat-mini .v{ font-family:var(--f-display); font-size:1.35rem; font-weight:700; }
+.stat-mini .l{ font-size:.68rem; color:var(--text-2); text-transform:uppercase; letter-spacing:.06em; margin-top:2px; }
+
+.hscroll{ display:flex; gap:10px; overflow-x:auto; padding:2px 2px 8px; scrollbar-width:none; }
+.mini-sprite{ flex-shrink:0; width:78px; display:flex; flex-direction:column; align-items:center; gap:6px; padding:12px 8px; border-radius: var(--rad-m); background:var(--bg-glass); border:1px solid var(--border); }
+.mini-sprite .emoji{ font-size:1.4rem; }
+.mini-sprite .n{ font-size:.68rem; font-weight:700; text-align:center; line-height:1.2; }
+.mini-sprite .variant-tag{ font-size:.58rem; font-weight:700; padding:1px 6px; border-radius:999px; }
+.empty-hint{ font-size:.8rem; color:var(--text-2); padding:10px 2px; }
+
+.achv-mini-row{ display:flex; align-items:center; gap:12px; padding:10px 2px; border-bottom:1px solid var(--border); }
+.achv-mini-row:last-child{ border-bottom:none; }
+.achv-mini-row .ic{ width:34px; height:34px; border-radius:10px; background:rgba(232,184,75,.14); border:1px solid rgba(232,184,75,.3); display:flex; align-items:center; justify-content:center; font-size:1rem; flex-shrink:0; }
+.achv-mini-row .n{ font-size:.82rem; font-weight:700; }
+.achv-mini-row .d{ font-size:.7rem; color:var(--text-2); }
+
+/* ============================================================
+   4. COLLECTION + FICHE SPRITE
+   ============================================================ */
+.sprite-card{ display:flex; align-items:center; gap:12px; padding:13px 14px; border-radius: var(--rad-m); background:var(--bg-glass); border:1px solid var(--border); margin-bottom:9px; transition: transform var(--dur-s) var(--ease), border-color var(--dur-s); }
+.sprite-card:active{ transform: scale(.985); }
+.emoji-box{ width:46px; height:46px; border-radius:13px; background:var(--bg-2); border:1px solid var(--border-strong); display:flex; align-items:center; justify-content:center; font-size:1.35rem; flex-shrink:0; position:relative; }
+.fav-dot{ position:absolute; top:-4px; right:-4px; width:14px; height:14px; border-radius:50%; background:var(--c-pink); border:2px solid var(--bg-1); display:flex; align-items:center; justify-content:center; font-size:8px; animation: pop .3s var(--ease); }
+.sc-body{ flex:1; min-width:0; }
+.sc-top{ display:flex; align-items:center; gap:6px; }
+.sc-name{ font-weight:700; font-size:.92rem; }
+.rarity-pill{ font-size:.6rem; font-weight:700; text-transform:uppercase; letter-spacing:.03em; border-radius:5px; padding:2px 6px; flex-shrink:0; }
+.sc-note{ font-size:.72rem; color:var(--text-2); margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.sc-bar-bg{ height:5px; border-radius:99px; background:rgba(255,255,255,.06); margin-top:7px; overflow:hidden; }
+.sc-bar-fill{ height:100%; border-radius:99px; transition: width var(--dur-m) var(--ease); }
+.sc-count{ font-size:.7rem; color:var(--text-2); font-weight:700; flex-shrink:0; font-family:var(--f-mono); }
+.sc-count.full{ color: var(--c-green); }
+.sc-chevron{ color:var(--text-2); flex-shrink:0; width:16px; height:16px; }
+
+.no-results{ text-align:center; color:var(--text-2); font-size:.85rem; padding:40px 10px; }
+
+/* Fiche détaillée (bottom sheet) */
+.sheet-backdrop{ position:fixed; inset:0; background:rgba(4,5,10,.6); backdrop-filter: blur(3px); z-index:50; opacity:0; pointer-events:none; transition: opacity var(--dur-m) var(--ease); }
+.sheet-backdrop.show{ opacity:1; pointer-events:auto; }
+.sheet{
+  position:fixed; left:0; right:0; bottom:0; z-index:51; max-width:720px; margin:0 auto;
+  background: var(--bg-1); border-radius: 26px 26px 0 0; border:1px solid var(--border); border-bottom:none;
+  max-height:88vh; overflow-y:auto; transform: translateY(100%); transition: transform var(--dur-l) var(--ease);
+  padding: 10px 20px calc(28px + env(safe-area-inset-bottom));
+  box-shadow: 0 -20px 50px rgba(0,0,0,.5);
+}
+.sheet.show{ transform: translateY(0); }
+.sheet-handle{ width:38px; height:4px; border-radius:99px; background:var(--border-strong); margin:6px auto 14px; }
+.sheet-head{ display:flex; align-items:flex-start; gap:14px; }
+.sheet-emoji{ width:64px; height:64px; border-radius:18px; background:var(--bg-2); border:1px solid var(--border-strong); display:flex; align-items:center; justify-content:center; font-size:2rem; flex-shrink:0; }
+.sheet-title{ font-size:1.25rem; font-weight:700; }
+.sheet-close{ margin-left:auto; width:32px; height:32px; border-radius:50%; background:var(--bg-glass); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.sheet-fav{ width:32px; height:32px; border-radius:50%; background:var(--bg-glass); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:1rem; }
+.sheet-fav.on{ background:rgba(232,93,156,.18); border-color:var(--c-pink); }
+.sheet-note{ font-size:.85rem; color:var(--text-1); margin-top:10px; line-height:1.5; }
+.sheet-meta-row{ display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+.meta-tag{ font-size:.68rem; color:var(--text-2); background:var(--bg-glass); border:1px solid var(--border); padding:4px 9px; border-radius:999px; }
+.rate-grid{ display:grid; grid-template-columns: repeat(4,1fr); gap:8px; margin-top:6px; }
+.rate-card{ padding:10px 6px; border-radius:12px; text-align:center; border:1px solid var(--border); background:var(--bg-glass); }
+.rate-card .rl{ font-size:.62rem; font-weight:700; text-transform:uppercase; letter-spacing:.03em; }
+.rate-card .rv{ font-size:.75rem; font-weight:700; margin-top:3px; }
+.sheet-tip{ margin-top:14px; padding:12px 14px; border-radius:14px; background:rgba(124,106,232,.08); border:1px solid rgba(124,106,232,.22); font-size:.8rem; line-height:1.5; }
+.sheet-maplink{ margin-top:10px; display:inline-flex; align-items:center; gap:6px; font-size:.78rem; font-weight:700; color:var(--c-purple); }
+
+.variant-row{ display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:14px; border:1px solid var(--border); margin-bottom:8px; background:var(--bg-glass); transition: all var(--dur-s) var(--ease); }
+.variant-toggle{ display:flex; flex-direction:column; align-items:flex-start; gap:2px; flex:1; }
+.variant-toggle .vt-top{ display:flex; align-items:center; gap:8px; font-size:.82rem; font-weight:700; }
+.vbox{ width:19px; height:19px; border-radius:6px; border:2px solid var(--border-strong); display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:.7rem; transition: all var(--dur-s) var(--ease); }
+.vbox.checked{ animation: pop var(--dur-m) var(--ease); }
+@keyframes pop{ 0%{ transform:scale(.7);} 60%{ transform:scale(1.15);} 100%{ transform:scale(1);} }
+.vt-rate{ font-size:.66rem; color:var(--text-2); margin-left:27px; }
+.mastery-toggle{ display:flex; align-items:center; gap:5px; padding:6px 10px; border-radius:8px; border:1px solid var(--border); color:var(--text-2); font-size:.64rem; font-weight:700; white-space:nowrap; }
+.mastery-toggle.on{ border-color: var(--c-green); background:rgba(143,224,160,.14); color:var(--c-green); }
+.mbox{ width:13px; height:13px; border-radius:4px; border:1.5px solid var(--border-strong); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+
+/* ============================================================
+   5. CARTE
+   ============================================================ */
+.map-disclaimer{ font-size:.7rem; color:var(--text-2); font-style:italic; margin-bottom:12px; line-height:1.4; }
+.map-legend{ display:flex; gap:14px; margin-bottom:12px; flex-wrap:wrap; }
+.map-legend .li{ display:flex; align-items:center; gap:6px; font-size:.68rem; color:var(--text-2); }
+.map-legend .sw{ width:9px; height:9px; border-radius:50%; }
+.map-viewport{ position:relative; width:100%; aspect-ratio:1/1; border-radius: var(--rad-l); overflow:hidden; border:1px solid var(--border); touch-action:none;
+  background: radial-gradient(ellipse at 50% 45%, var(--bg-2) 0%, var(--bg-1) 70%, var(--bg-0) 100%); }
+.map-inner{ position:absolute; inset:0; transform-origin: 0 0; }
+.map-pin{ position:absolute; transform:translate(-50%,-50%); width:32px; height:32px; border-radius:50%; background:var(--bg-2); border:2px solid var(--border-strong); display:flex; align-items:center; justify-content:center; font-size:14px; transition: all var(--dur-s) var(--ease); animation: pinIn var(--dur-m) var(--ease) both; }
+.map-pin:active{ transform: translate(-50%,-50%) scale(.85); }
+.map-pin.vault{ border-style:dashed; }
+.map-pin.highlight{ border-color: var(--c-gold); background: rgba(232,184,75,.22); box-shadow:0 0 0 7px rgba(232,184,75,.14); animation: pulse 1.5s ease-in-out infinite; }
+@keyframes pinIn{ from{ opacity:0; transform:translate(-50%,-50%) scale(.3); } to{ opacity:1; transform:translate(-50%,-50%) scale(1); } }
+@keyframes pulse{ 0%,100%{ box-shadow:0 0 0 5px rgba(232,184,75,.14);} 50%{ box-shadow:0 0 0 11px rgba(232,184,75,.04);} }
+.map-label{ position:absolute; top:100%; left:50%; transform:translateX(-50%); margin-top:4px; font-size:8.5px; font-weight:700; color:var(--text-2); white-space:nowrap; }
+.map-controls{ position:absolute; right:10px; bottom:10px; display:flex; flex-direction:column; gap:6px; z-index:5; }
+.map-ctrl-btn{ width:34px; height:34px; border-radius:10px; background:rgba(20,22,34,.7); backdrop-filter:blur(6px); border:1px solid var(--border-strong); color:var(--text-0); font-size:1rem; font-weight:700; display:flex; align-items:center; justify-content:center; }
+.map-tooltip{ margin-top:14px; padding:12px 14px; min-height:20px; font-size:.82rem; line-height:1.5; color:var(--text-1); }
+.map-tooltip strong{ color:var(--text-0); }
+
+/* ============================================================
+   6. NEWS
+   ============================================================ */
+.news-item{ position:relative; padding:2px 0 16px 18px; border-left:2px solid var(--border); animation: fadeUp var(--dur-m) var(--ease) both; }
+@keyframes fadeUp{ from{ opacity:0; transform:translateY(6px);} to{ opacity:1; transform:none;} }
+.news-item:last-child{ padding-bottom:0; }
+.news-item::before{ content:""; position:absolute; left:-6px; top:5px; width:10px; height:10px; border-radius:50%; background:var(--text-2); border:2px solid var(--bg-1); }
+.news-item.upcoming::before{ background: var(--c-purple); box-shadow:0 0 0 3px rgba(124,106,232,.2); }
+.news-card{ padding:12px 14px; border-radius:14px; }
+.news-top{ display:flex; align-items:center; gap:8px; }
+.news-date{ font-size:.66rem; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--text-2); font-family:var(--f-mono); }
+.news-badge{ font-size:.58rem; font-weight:700; text-transform:uppercase; padding:2px 8px; border-radius:999px; }
+.news-title{ font-size:.88rem; font-weight:700; margin-top:5px; }
+.news-desc{ font-size:.76rem; color:var(--text-1); margin-top:3px; line-height:1.45; }
+
+/* ============================================================
+   7. STATISTIQUES
+   ============================================================ */
+.donut-wrap{ display:flex; align-items:center; gap:18px; }
+.bar-row{ display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+.bar-row:last-child{ margin-bottom:0; }
+.bar-row-label{ font-size:.68rem; font-weight:700; width:76px; flex-shrink:0; text-transform:uppercase; letter-spacing:.02em; color:var(--text-1); }
+.bar-row-track{ flex:1; height:7px; border-radius:99px; background:rgba(255,255,255,.06); overflow:hidden; }
+.bar-row-fill{ height:100%; border-radius:99px; transition: width .6s var(--ease); }
+.bar-row-count{ font-size:.66rem; color:var(--text-2); width:42px; text-align:right; flex-shrink:0; font-family:var(--f-mono); }
+.kpi-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
+.kpi{ padding:14px; border-radius: var(--rad-m); background:var(--bg-glass); border:1px solid var(--border); text-align:center; }
+.kpi .v{ font-family:var(--f-display); font-size:1.5rem; font-weight:700; }
+.kpi .l{ font-size:.65rem; color:var(--text-2); margin-top:3px; text-transform:uppercase; letter-spacing:.05em; }
+
+/* ============================================================
+   8. SUCCÈS
+   ============================================================ */
+.achv-summary-bar{ font-size:.78rem; color:var(--text-1); margin-bottom:12px; }
+.achv-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.achv-card{ border:1px solid var(--border); border-radius:14px; padding:12px 13px; background:var(--bg-glass); filter:grayscale(.6); transition: all var(--dur-m) var(--ease); }
+.achv-card.unlocked{ filter:none; border-color:rgba(232,184,75,.35); background:rgba(232,184,75,.07); }
+.achv-card .ic{ font-size:1.2rem; opacity:.4; }
+.achv-card.unlocked .ic{ opacity:1; }
+.achv-card .n{ font-size:.74rem; font-weight:700; margin-top:5px; color:var(--text-2); }
+.achv-card.unlocked .n{ color:var(--text-0); }
+.achv-card .d{ font-size:.63rem; color:var(--text-2); margin-top:2px; line-height:1.3; }
+
+/* Popup de déblocage + confettis */
+.unlock-overlay{ position:fixed; inset:0; z-index:80; display:flex; align-items:center; justify-content:center; background:rgba(4,5,10,.55); backdrop-filter:blur(4px); opacity:0; pointer-events:none; transition:opacity var(--dur-m) var(--ease); padding:24px; }
+.unlock-overlay.show{ opacity:1; pointer-events:auto; }
+.unlock-card{ width:100%; max-width:320px; text-align:center; padding:30px 24px 26px; border-radius: var(--rad-xl); background: var(--bg-1); border:1px solid rgba(232,184,75,.4); box-shadow:0 20px 60px rgba(0,0,0,.5); transform: scale(.85) translateY(10px); transition: transform var(--dur-l) var(--ease); }
+.unlock-overlay.show .unlock-card{ transform:none; }
+.unlock-eyebrow{ font-size:.7rem; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--c-gold); }
+.unlock-icon{ font-size:2.6rem; margin:14px 0 6px; }
+.unlock-name{ font-family:var(--f-display); font-size:1.15rem; font-weight:700; }
+.unlock-desc{ font-size:.8rem; color:var(--text-1); margin-top:4px; }
+.confetti-piece{ position:fixed; top:-10px; z-index:81; border-radius:2px; pointer-events:none; animation: confettiFall linear forwards; }
+@keyframes confettiFall{ to{ transform: translateY(110vh) rotate(540deg); opacity:.2; } }
+
+/* ============================================================
+   9. PARAMÈTRES
+   ============================================================ */
+.setting-row{ display:flex; align-items:center; justify-content:space-between; gap:12px; padding:13px 2px; border-bottom:1px solid var(--border); }
+.setting-row:last-child{ border-bottom:none; }
+.setting-label{ font-size:.85rem; font-weight:600; }
+.setting-sub{ font-size:.7rem; color:var(--text-2); margin-top:1px; }
+.about-note{ font-size:.7rem; color:var(--text-2); line-height:1.6; margin-top:6px; }
+input[type="file"]{ display:none; }
+
+/* ============================================================
+   10. TOASTS
+   ============================================================ */
+.toast-stack{ position:fixed; left:0; right:0; top: calc(14px + env(safe-area-inset-top)); z-index:90; display:flex; flex-direction:column; align-items:center; gap:8px; pointer-events:none; }
+.toast{ display:flex; align-items:center; gap:8px; padding:10px 16px; border-radius:999px; background:rgba(20,22,34,.85); backdrop-filter:blur(10px); border:1px solid var(--border-strong); font-size:.8rem; font-weight:600; box-shadow:var(--sh-2); animation: toastIn var(--dur-m) var(--ease), toastOut var(--dur-m) var(--ease) 2.4s forwards; }
+@keyframes toastIn{ from{ opacity:0; transform:translateY(-10px);} to{ opacity:1; transform:none;} }
+@keyframes toastOut{ to{ opacity:0; transform:translateY(-10px); } }
+
+.warn-box{ margin-top:12px; padding:12px 14px; border-radius: var(--rad-m); background:rgba(232,184,75,.08); border:1px solid rgba(232,184,75,.35); font-size:.78rem; color:var(--c-gold); }
+.sr-only{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; }
+</style>
+</head>
+<body>
+
+<div class="app" id="app">
+
+  <!-- Barre supérieure : titre de page courante -->
+  <div class="topbar" id="topbar"></div>
+
+  <!-- Zone de contenu : une seule page rendue à la fois -->
+  <main class="page" id="pageContainer" role="main"></main>
+
+  <!-- Navigation basse fixe -->
+  <nav class="navbar" id="navbar" aria-label="Navigation principale"></nav>
+
+  <!-- Fiche détaillée d'un Sprite (bottom sheet) -->
+  <div class="sheet-backdrop" id="sheetBackdrop" onclick="closeSheet()"></div>
+  <div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitleText"></div>
+
+  <!-- Popup de déblocage de succès -->
+  <div class="unlock-overlay" id="unlockOverlay"></div>
+
+  <!-- Notifications toast -->
+  <div class="toast-stack" id="toastStack" aria-live="polite"></div>
+</div>
+
+<script>
+/* ================================================================
+   SPRITE DEX — application de suivi de collection
+   Fichier unique : HTML + CSS + JS, PWA, sans dépendance de build.
+   Sommaire du script :
+     1. Données (sprites, variantes, carte, news, succès)
+     2. État applicatif + persistance (localStorage)
+     3. Utilitaires (taux, formatage, toasts, confettis)
+     4. Icônes SVG (nav + UI) — pas d'assets Epic Games
+     5. Rendu : coquille (topbar/nav), puis une fonction par page
+     6. Fiche Sprite (bottom sheet), Succès (popup), Carte (zoom/pan)
+     7. PWA : manifest dynamique + service worker (Blob, best-effort)
+   ================================================================ */
+
+/* ----------------------------------------------------------------
+   1. DONNÉES — inchangées dans leur contenu, source de vérité unique
+   ---------------------------------------------------------------- */
+const VARIANTS = [
+  { key: "base",  label: "Normal", color: "#8B95A6", glow: "rgba(139,149,166,0.28)" },
+  { key: "gold",  label: "Gold",   color: "#E8B84B", glow: "rgba(232,184,75,0.28)" },
+  { key: "gummy", label: "Gummy",  color: "#E85D9C", glow: "rgba(232,93,156,0.28)" },
+  { key: "galaxy",label: "Galaxy", color: "#7C6AE8", glow: "rgba(124,106,232,0.3)" },
+];
+const RARITY_COLORS = { Rare: "#5DA9E8", Epic: "#B36AE8", Legendary: "#E8A23A", Mythic: "#E85D5D" };
+const RARITY_ORDER = ["Rare", "Epic", "Legendary", "Mythic"];
+const RARITY_INDEX = { Rare:1, Epic:2, Legendary:3, Mythic:4 };
+
+const MAP_ZONES = [
+  { id: "sinisterstrip", name: "Sinister Strip", x: 50, y: 48, icon: "\u{1f3d9}\u{fe0f}", vault:true,  detail: "4 Coffres Sprite \u2014 la zone la plus dense de la carte. Contient aussi le Vault Epic (Keycard l\u00e9gendaire requise)." },
+  { id: "pointzero", name: "Point Zero", x: 50, y: 28, icon: "\u{1f300}", vault:false, detail: "Landmark central au nord de Sinister Strip. Coffre Sprite d\u00e9di\u00e9 pour le Zero Point Sprite." },
+  { id: "frostedflats", name: "Frosted Flats", x: 62, y: 14, icon: "\u2744\ufe0f", vault:true, detail: "Vault Epic souterrain (Keycard l\u00e9gendaire) \u2014 3 Coffres Sprite garantis." },
+  { id: "liftylodge", name: "Lifty Lodge", x: 16, y: 22, icon: "\u{1f6a1}", vault:false, detail: "2 Coffres Sprite, ambiance montagnarde avec tyroliennes." },
+  { id: "battlewoods", name: "The Battlewoods", x: 24, y: 52, icon: "\u{1f332}", vault:false, detail: "For\u00eat dense, 1 Coffre Sprite confirm\u00e9." },
+  { id: "wonkeeland", name: "Wonkeeland", x: 30, y: 78, icon: "\u{1f3aa}", vault:false, detail: "3 Coffres Sprite, zone survivante depuis la Saison 2." },
+  { id: "shakensanctuary", name: "Shaken Sanctuary", x: 55, y: 82, icon: "\u26e9\ufe0f", vault:false, detail: "3 Coffres Sprite. A perdu son vault classique apr\u00e8s les \u00e9v\u00e9nements sc\u00e9naris\u00e9s." },
+  { id: "heatwaveharbor", name: "Heatwave Harbor", x: 78, y: 62, icon: "\u{1f3ed}", vault:false, detail: "3 Coffres Sprite, zone industrielle c\u00f4ti\u00e8re." },
+  { id: "calamaricanyon", name: "Calamari Canyon", x: 82, y: 36, icon: "\u{1f991}", vault:false, detail: "3 Coffres Sprite." },
+  { id: "clustercoast", name: "Cluster Coast", x: 68, y: 88, icon: "\u{1f3d6}\ufe0f", vault:false, detail: "1 Coffre Sprite, POI th\u00e9matique Runners." },
+];
+
+const NEWS = [
+  { date: "09/07/2026", title: "Sortie du variant Holofoil", desc: "Nouvelle variante au-dessus de Galaxy pour tous les Sprites. New Sprite Thursday.", tag: "\u00c0 venir", upcoming: true },
+  { date: "06/07/2026", title: "Mastery Monday", desc: "Spawn rates boost\u00e9s, 2x Sprite Dust et 2x XP toute la journ\u00e9e.", tag: "\u00c0 venir", upcoming: true },
+  { date: "04/07/2026", title: "Gold and Gummy Hours", desc: "2 sessions (14h et 21h ET) : taux Gold/Gummy boost\u00e9s, loadout Mythic Goldfish + Self-Revive offert, leveling plus rapide.", tag: "Aujourd'hui", upcoming: false },
+  { date: "02/07/2026", title: "Catch Up Day Legendary", desc: "24h de spawn x4 pour Dream, Punk et Boss, concentr\u00e9 autour de Shattered Coast.", tag: "Pass\u00e9", upcoming: false },
+  { date: "25/06/2026", title: "5 nouveaux Sprites", desc: "Ajout de Fishy, Aura, Striker, Boss et Grim, avec leurs 4 variantes d\u00e8s le lancement.", tag: "Pass\u00e9", upcoming: false },
+  { date: "18/06/2026", title: "Lancement du variant Galaxy", desc: "4e variante sp\u00e9ciale ajout\u00e9e \u00e0 tous les Sprites d'origine.", tag: "Pass\u00e9", upcoming: false },
+  { date: "13/06/2026", title: "Golden Hour", desc: "Premier \u00e9v\u00e9nement de boost de taux pour la variante Gold.", tag: "Pass\u00e9", upcoming: false },
+  { date: "06/06/2026", title: "Lancement Saison 3 Runners", desc: "Introduction des Sprites comme m\u00e9canique centrale de la saison (11 Sprites de base).", tag: "Pass\u00e9", upcoming: false },
+];
+
+const SPRITES = [
+  { id: "water", name: "Water", emoji: "\u{1f4a7}", rarity: "Rare", drop: "13.92%", added: "06/06/2026", note: "R\u00e9g\u00e9n\u00e8re le bouclier (vous + squad) dans l'eau", variants: ["base","gold","gummy","galaxy"], tip: "[ZONE CONSEILL\u00c9E] Sinister Strip \u2014 la zone avec le plus de Coffres Sprite de toute la carte (4).", zone: "sinisterstrip" },
+  { id: "earth", name: "Earth", emoji: "\u{1f331}", rarity: "Rare", drop: "13.92%", added: "06/06/2026", note: "Chance d'objets rares en plus dans les coffres", variants: ["base","gold","gummy","galaxy"], tip: "[ZONE CONSEILL\u00c9E] Sinister Strip \u2014 la zone avec le plus de Coffres Sprite de toute la carte (4).", zone: "sinisterstrip" },
+  { id: "fire", name: "Fire", emoji: "\u{1f525}", rarity: "Rare", drop: "13.92%", added: "06/06/2026", note: "Explosion enflamm\u00e9e sur d\u00e9g\u00e2ts suffisants", variants: ["base","gold","gummy","galaxy"], tip: "[ZONE CONSEILL\u00c9E] Sinister Strip \u2014 la zone avec le plus de Coffres Sprite de toute la carte (4).", zone: "sinisterstrip" },
+  { id: "fishy", name: "Fishy", emoji: "\u{1f41f}", rarity: "Rare", drop: "13.79%", added: "25/06/2026", note: "Vitesse de nage + boost de vitesse quand touch\u00e9", variants: ["base","gold","gummy","galaxy"], tip: "[ZONE CONSEILL\u00c9E] Sinister Strip \u2014 la meilleure zone toutes cat\u00e9gories (4 Coffres Sprite).", zone: "sinisterstrip" },
+  { id: "duck", name: "Duck", emoji: "\u{1f986}", rarity: "Epic", drop: "5.22%", added: "06/06/2026", note: "Emote/Jam r\u00e9g\u00e9n\u00e8re le bouclier", variants: ["base","gold","gummy","galaxy"], tip: "[ZONE CONSEILL\u00c9E] Sinister Strip \u2014 la zone avec le plus de Coffres Sprite de toute la carte (4).", zone: "sinisterstrip" },
+  { id: "ghost", name: "Ghost", emoji: "\u{1f47b}", rarity: "Epic", drop: "5.22%", added: "06/06/2026", note: "Camouflage bref au reload \u2014 spawn la nuit uniquement", variants: ["base","gold","gummy","galaxy"], tip: "[CONFIRM\u00c9] Uniquement la nuit. Sinister Strip une fois la nuit tomb\u00e9e.", zone: "sinisterstrip" },
+  { id: "demon", name: "Demon", emoji: "\u{1f608}", rarity: "Epic", drop: "5.22%", added: "06/06/2026", note: "Vol de vie/bouclier \u00e0 l'\u00e9limination", variants: ["base","gold","gummy","galaxy"], tip: "[ZONE CONSEILL\u00c9E] Sinister Strip \u2014 la zone avec le plus de Coffres Sprite de toute la carte (4).", zone: "sinisterstrip" },
+  { id: "king", name: "King", emoji: "\u{1f451}", rarity: "Epic", drop: "5.22%", added: "06/06/2026", note: "D\u00e9g\u00e2ts de pioche augment\u00e9s", variants: ["base","gold","gummy","galaxy"], tip: "[\u00c0 V\u00c9RIFIER] Sinister Strip. Certaines sources anciennes le limitaient aux lobbies Bots \u2014 \u00e0 v\u00e9rifier en jeu.", zone: "sinisterstrip" },
+  { id: "aura", name: "Aura", emoji: "\u{1f52e}", rarity: "Epic", drop: "5.74%", added: "25/06/2026", note: "Charge Shock Rock sur d\u00e9g\u00e2ts suffisants", variants: ["base","gold","gummy","galaxy"], tip: "[ZONE CONSEILL\u00c9E] Sinister Strip \u2014 la zone avec le plus de Coffres Sprite de toute la carte (4).", zone: "sinisterstrip" },
+  { id: "striker", name: "Striker", emoji: "\u26bd", rarity: "Epic", drop: "5.74%", added: "25/06/2026", note: "Overdrive au mantle/hurdle \u2014 but au terrain de foot", variants: ["base","gold","gummy","galaxy"], tip: "[CONFIRM\u00c9] But au terrain de foot \u2014 garanti, pas de RNG.", zone: null },
+  { id: "dream", name: "Dream", emoji: "\u{1f4a4}", rarity: "Legendary", drop: "2.436%", added: "06/06/2026", note: "Objet al\u00e9atoire \u00e0 chaque niveau, loot l\u00e9gendaire au niveau max", variants: ["base","gold","gummy","galaxy"], tip: "[ZONE CONSEILL\u00c9E] Vault Epic de Sinister Strip (Keycard l\u00e9gendaire) \u2014 3 Coffres Sprite garantis.", zone: "sinisterstrip" },
+  { id: "punk", name: "Punk", emoji: "\u{1f3b8}", rarity: "Legendary", drop: "2.436%", added: "06/06/2026", note: "Chance de munitions infinies (effet al\u00e9atoire)", variants: ["base","gold","gummy","galaxy"], tip: "[ZONE CONSEILL\u00c9E] Vault Epic de Sinister Strip (Keycard l\u00e9gendaire) \u2014 3 Coffres Sprite garantis.", zone: "sinisterstrip" },
+  { id: "boss", name: "Boss", emoji: "\u{1f6e1}\ufe0f", rarity: "Legendary", drop: "2.63%", added: "25/06/2026", note: "Boost Max HP/bouclier \u2014 obtenu en \u00e9liminant un boss", variants: ["base","gold","gummy","galaxy"], tip: "[CONFIRM\u00c9] \u00c9limine un PNJ Boss nomm\u00e9 \u2014 garanti, pas de RNG.", zone: null },
+  { id: "grim", name: "Grim Reaper", emoji: "\u{1f480}", rarity: "Legendary", drop: "0.000098%", added: "25/06/2026", note: "Marque les attaquants sur la carte \u2014 le plus rare du jeu", variants: ["base","gold","gummy","galaxy"], tip: "[ZONE CONSEILL\u00c9E] Pure chance. Sinister Strip pour maximiser le nombre d'ouvertures de coffres.", zone: "sinisterstrip" },
+  { id: "zeropoint", name: "Zero Point", emoji: "\u{1f300}", rarity: "Mythic", drop: "1.044%", added: "06/06/2026", note: "Shield Bubble Jr. au soin \u2014 le plus rare des Sprites originaux", variants: ["base","gold","gummy","galaxy"], tip: "[CONFIRM\u00c9] Le Point Z\u00e9ro (centre de la carte) \u2014 Coffre Sprite d\u00e9di\u00e9 sur ce Landmark.", zone: "pointzero" },
+  { id: "burntpeanut", name: "Burnt Peanut", emoji: "\u{1f95c}", rarity: "Mythic", drop: "1.5%", added: "06/06/2026", note: "Chance de loot bonus \u00e0 l'\u00e9lim \u2014 Normal uniquement, coffres reliques", variants: ["base"], tip: "[CONFIRM\u00c9] Coffres Reliques uniquement (pas les Coffres Sprite classiques).", zone: null },
+];
+
+const ACHIEVEMENTS = [
+  { id: "first", icon: "\u{1f389}", name: "Premi\u00e8re Capture", desc: "Obtiens ta toute premi\u00e8re variante", check: (p, done) => done >= 1 },
+  { id: "galaxy1", icon: "\u{1f30c}", name: "Premier Galaxy", desc: "Obtiens ta premi\u00e8re variante Galaxy", check: (p) => Object.keys(p).some(k => k.endsWith(":galaxy") && !k.startsWith("mastery:") && p[k]) },
+  { id: "water4", icon: "\u{1f4a7}", name: "Collection Eau compl\u00e8te", desc: "Obtiens les 4 variantes de Water", check: (p) => ["base","gold","gummy","galaxy"].every(v => p["water:" + v]) },
+  { id: "mastery10", icon: "\u{1f3c5}", name: "10 Ma\u00eetrises", desc: "Ma\u00eetrise 10 variantes au total", check: (p, done, masteryDone) => masteryDone >= 10 },
+  { id: "boss1", icon: "\u{1f6e1}\ufe0f", name: "Chasseur de Boss", desc: "Obtiens le Sprite Boss", check: (p) => p["boss:base"] },
+  { id: "allrarities", icon: "\u{1f396}\ufe0f", name: "Toutes les Raret\u00e9s", desc: "Obtiens au moins un Sprite de chaque raret\u00e9", check: (p) => RARITY_ORDER.every(r => SPRITES.some(s => s.rarity === r && s.variants.some(v => p[s.id + ":" + v]))) },
+  { id: "grim1", icon: "\u{1f480}", name: "Contre Toute Attente", desc: "Obtiens le Grim Reaper (0.000098%)", check: (p) => ["base","gold","gummy","galaxy"].some(v => p["grim:" + v]) },
+  { id: "legendary4", icon: "\u2694\ufe0f", name: "Sang L\u00e9gendaire", desc: "Obtiens les 4 Sprites Legendary (Normal)", check: (p) => ["dream","punk","boss","grim"].every(id => p[id + ":base"]) },
+  { id: "masteryall", icon: "\u{1f451}", name: "Ma\u00eetre Absolu", desc: "Ma\u00eetrise toutes les variantes poss\u00e9d\u00e9es", check: (p, done, masteryDone) => done > 0 && masteryDone === done },
+  { id: "complete", icon: "\u{1f3c6}", name: "100% Compl\u00e9t\u00e9", desc: "Obtiens les 61 collectibles", check: (p, done) => done >= 61 },
+  { id: "trio", icon: "\u{1f30d}", name: "Trio \u00c9l\u00e9mentaire", desc: "Obtiens Water, Earth et Fire (Normal)", check: (p) => ["water","earth","fire"].every(id => p[id+":base"]) },
+  { id: "allrare", icon: "\u{1f539}", name: "Collection Rare compl\u00e8te", desc: "Obtiens les 4 variantes des 4 Sprites Rare", check: (p) => SPRITES.filter(s=>s.rarity==="Rare").every(s => s.variants.every(v => p[s.id+":"+v])) },
+  { id: "allepic", icon: "\u{1f537}", name: "Toutes les Epic", desc: "Obtiens au moins une variante des 6 Sprites Epic", check: (p) => SPRITES.filter(s=>s.rarity==="Epic").every(s => s.variants.some(v => p[s.id+":"+v])) },
+  { id: "goldrush", icon: "\u{1fa99}", name: "Gold Rush", desc: "Obtiens 5 variantes Gold", check: (p) => Object.keys(p).filter(k=>k.endsWith(":gold") && !k.startsWith("mastery:") && p[k]).length >= 5 },
+  { id: "gummyfan", icon: "\u{1f36c}", name: "Fan de Gummy", desc: "Obtiens 5 variantes Gummy", check: (p) => Object.keys(p).filter(k=>k.endsWith(":gummy") && !k.startsWith("mastery:") && p[k]).length >= 5 },
+  { id: "halfway", icon: "\u{1f317}", name: "Mi-Chemin", desc: "Atteins 50% de la collection (31/61)", check: (p, done) => done >= 31 },
+  { id: "goal", icon: "\u26bd", name: "But !", desc: "Obtiens le Sprite Striker", check: (p) => p["striker:base"] },
+  { id: "nightowl", icon: "\u{1f319}", name: "Oiseau de Nuit", desc: "Obtiens le Sprite Ghost", check: (p) => p["ghost:base"] },
+  { id: "mythicduo", icon: "\u2728", name: "Duo Mythique", desc: "Obtiens Zero Point et Burnt Peanut (Normal)", check: (p) => p["zeropoint:base"] && p["burntpeanut:base"] },
+  { id: "galaxyall", icon: "\u{1f30c}", name: "Ciel Constell\u00e9", desc: "Obtiens la variante Galaxy de tous les Sprites \u00e9ligibles", check: (p) => SPRITES.filter(s => s.variants.includes("galaxy")).every(s => p[s.id+":galaxy"]) },
+  { id: "epicfull", icon: "\u{1f537}", name: "Collection Epic compl\u00e8te", desc: "Obtiens les 4 variantes des 6 Sprites Epic", check: (p) => SPRITES.filter(s=>s.rarity==="Epic").every(s => s.variants.every(v => p[s.id+":"+v])) },
+  { id: "legendaryfull", icon: "\u2694\ufe0f", name: "Collection L\u00e9gendaire compl\u00e8te", desc: "Obtiens les 4 variantes des 4 Sprites Legendary", check: (p) => SPRITES.filter(s=>s.rarity==="Legendary").every(s => s.variants.every(v => p[s.id+":"+v])) },
+  { id: "mastery20", icon: "\u{1f393}", name: "Expert Confirm\u00e9", desc: "Ma\u00eetrise 20 variantes au total", check: (p, done, masteryDone) => masteryDone >= 20 },
+  { id: "perfect", icon: "\u{1f48e}", name: "Perfection Totale", desc: "Obtiens ET ma\u00eetrise les 61 collectibles", check: (p, done, masteryDone) => done >= 61 && masteryDone >= 61 },
+  { id: "duckfull", icon: "\u{1f986}", name: "Canard Complet", desc: "Obtiens les 4 variantes de Duck", check: (p) => ["base","gold","gummy","galaxy"].every(v => p["duck:"+v]) },
+  { id: "zeromaster", icon: "\u{1f573}\ufe0f", name: "Ma\u00eetre du Vide", desc: "Ma\u00eetrise une variante de Zero Point", check: (p) => ["base","gold","gummy","galaxy"].some(v => p["mastery:zeropoint:"+v]) },
+  { id: "ghostmaster", icon: "\u{1f576}\ufe0f", name: "Sans un Bruit", desc: "Ma\u00eetrise une variante de Ghost", check: (p) => ["base","gold","gummy","galaxy"].some(v => p["mastery:ghost:"+v]) },
+];
+
+const TOTAL = SPRITES.reduce((s, sp) => s + sp.variants.length, 0); // 61
+
+// ----- Checklist quotidienne / hebdomadaire -----
+// day: index JS (0=dimanche, 1=lundi ... 6=samedi), utilis\u00e9 pour mettre en avant
+// la t\u00e2che du jour, mais toutes restent cochables toute la semaine.
+const DAILY_TASKS = [
+  { id: "d1", icon: "\u{1f4e6}", label: "Ouvrir au moins 3 Coffres Sprite aujourd'hui" },
+  { id: "d2", icon: "\u{1f4f0}", label: "V\u00e9rifier les Sprite News du jour" },
+];
+const WEEKLY_TASKS = [
+  { id: "w-mon", day: 1, icon: "\u{1f3c5}", label: "Mastery Monday", detail: "Taux de spawn boost\u00e9s + 2x Sprite Dust et 2x XP toute la journ\u00e9e" },
+  { id: "w-thu", day: 4, icon: "\u2728", label: "New Sprite Thursday", detail: "V\u00e9rifie les patch notes : c'est le jour type des nouveaut\u00e9s Sprites" },
+  { id: "w-sat", day: 6, icon: "\u23f0", label: "Power Hour", detail: "Taux boost\u00e9s \u00e0 12h30 et 18h30 (heure du Pacifique)" },
+];
+const DAY_NAMES = ["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];
+
+// ----- Syst\u00e8me de niveau / XP -----
+// XP accord\u00e9 par capture, selon la raret\u00e9 du Sprite et la variante obtenue.
+const RARITY_XP = { Rare: 10, Epic: 20, Legendary: 40, Mythic: 80 };
+const VARIANT_XP_MULT = { base: 1, gold: 1.5, gummy: 2, galaxy: 3 };
+const LEVEL_STEP = 60; // XP n\u00e9cessaire par niveau (palier fixe, simple et pr\u00e9visible)
+const LEVEL_TITLES = [
+  { max: 3, title: "D\u00e9butant" },
+  { max: 7, title: "Chasseur" },
+  { max: 12, title: "Expert" },
+  { max: 17, title: "Ma\u00eetre" },
+  { max: Infinity, title: "L\u00e9gende" },
+];
+function xpForCapture(sprite, variantKey){
+  return (RARITY_XP[sprite.rarity] || 0) * (VARIANT_XP_MULT[variantKey] || 1);
+}
+function computeTotalXP(){
+  let xp = 0;
+  Object.entries(state.progress).forEach(([k, v]) => {
+    if (!v || k.startsWith("mastery:")) return;
+    const [spriteId, variantKey] = k.split(":");
+    const sprite = SPRITES.find(s => s.id === spriteId);
+    if (sprite) xp += xpForCapture(sprite, variantKey);
+  });
+  return xp;
+}
+function titleForLevel(level){
+  return (LEVEL_TITLES.find(t => level <= t.max) || LEVEL_TITLES[LEVEL_TITLES.length-1]).title;
+}
+function levelInfo(xp){
+  const level = Math.floor(xp / LEVEL_STEP) + 1;
+  const into = xp % LEVEL_STEP;
+  const pct = Math.round((into / LEVEL_STEP) * 100);
+  return { level, into, pct, next: LEVEL_STEP, title: titleForLevel(level), xp };
+}
+
+const ACCENTS = {
+  aura:   { label: "Aura",   purple: "#7C6AE8", pink: "#E85D9C", gold: "#E8B84B" },
+  ocean:  { label: "Oc\u00e9an",  purple: "#4A90D9", pink: "#3EC6C6", gold: "#6FE0B8" },
+  forest: { label: "For\u00eat",  purple: "#5FA85A", pink: "#8FCB5C", gold: "#D9C24B" },
+};
+
+/* ----------------------------------------------------------------
+   2. ÉTAT + PERSISTANCE
+   ---------------------------------------------------------------- */
+const KEY_PROGRESS = "fortnite-sprites-progress-local"; // conservé tel quel : compatibilité avec les sauvegardes existantes
+const KEY_FAVORITES = "sprite-dex-favorites-v1";
+const KEY_SETTINGS = "sprite-dex-settings-v1";
+const KEY_HISTORY = "sprite-dex-history-v1";
+const KEY_ACHV_SEEN = "sprite-dex-achv-seen-v1";
+const KEY_CHECKLIST = "sprite-dex-checklist-v1";
+const KEY_LEVEL_SEEN = "sprite-dex-level-seen-v1";
+
+function loadJSON(key, fallback){
+  try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; }
+  catch(e){ return fallback; }
+}
+function saveJSON(key, value){
+  try { localStorage.setItem(key, JSON.stringify(value)); return true; }
+  catch(e){ return false; }
+}
+
+const state = {
+  progress: loadJSON(KEY_PROGRESS, {}),
+  favorites: loadJSON(KEY_FAVORITES, {}),
+  settings: Object.assign({ theme: "dark", textSize: "medium", reducedMotion: false, vibrations: true, compactMode: false, accent: "aura" }, loadJSON(KEY_SETTINGS, {})),
+  history: loadJSON(KEY_HISTORY, []),        // [{key, ts}] — dernières variantes obtenues
+  achvSeen: loadJSON(KEY_ACHV_SEEN, []),     // ids de succès déjà vus/annoncés
+  checklist: loadJSON(KEY_CHECKLIST, { dailyDate: "", dailyDone: {}, weekStart: "", weeklyDone: {} }),
+  levelSeen: loadJSON(KEY_LEVEL_SEEN, 0),
+  page: "home",
+  search: "",
+  sortBy: "name",
+  filterVariant: "all",
+  favOnly: false,
+  sheetSpriteId: null,
+  mapZoom: { scale: 1, tx: 0, ty: 0 },
+  activeZone: null,
+  mapFilter: "all",
+  achvFilter: "all",
+};
+
+function persistProgress(){ if(!saveJSON(KEY_PROGRESS, state.progress)){ showWarnStorage(); } }
+function persistFavorites(){ saveJSON(KEY_FAVORITES, state.favorites); }
+function persistSettings(){ saveJSON(KEY_SETTINGS, state.settings); }
+function persistHistory(){ saveJSON(KEY_HISTORY, state.history); }
+function persistAchvSeen(){ saveJSON(KEY_ACHV_SEEN, state.achvSeen); }
+function persistChecklist(){ saveJSON(KEY_CHECKLIST, state.checklist); }
+function persistLevelSeen(){ saveJSON(KEY_LEVEL_SEEN, state.levelSeen); }
+
+function showWarnStorage(){
+  const el = document.getElementById("pageContainer");
+  if (!el.querySelector(".warn-box")){
+    el.insertAdjacentHTML("afterbegin", '<div class="warn-box">\u26a0\ufe0f Impossible de sauvegarder dans ce navigateur (mode priv\u00e9 ?). Tes changements resteront actifs pendant cette session.</div>');
+  }
+}
+
+/* ----------------------------------------------------------------
+   3. UTILITAIRES
+   ---------------------------------------------------------------- */
+const VARIANT_MULT = { base: 1, gold: 0.0122, gummy: 0.00697, galaxy: 0.00348 };
+function parseRange(str) {
+  const m1 = str.match(/([\d.]+)-([\d.]+)%/);
+  if (m1) return [parseFloat(m1[1]), parseFloat(m1[2])];
+  const m2 = str.match(/([\d.]+)%/);
+  if (m2) return [parseFloat(m2[1]), parseFloat(m2[1])];
+  return null;
+}
+function variantRateLabel(sprite, variantKey) {
+  if (variantKey === "base") return sprite.drop;
+  const range = parseRange(sprite.drop);
+  if (!range) return "Estimation indisponible";
+  const mult = VARIANT_MULT[variantKey];
+  const lo = range[0] * mult, hi = range[1] * mult;
+  const fmt = (n) => { if (n >= 1) return n.toFixed(2); if (n >= 0.01) return n.toFixed(3); return n.toFixed(7).replace(/0+$/, "").replace(/\.$/, ""); };
+  return lo === hi ? "~" + fmt(lo) + "%" : "~" + fmt(lo) + "-" + fmt(hi) + "%";
+}
+
+/* ----- Estimation du temps de capture ------------------------------------
+   Hypoth\u00e8ses (affich\u00e9es \u00e0 l'utilisateur, \u00e0 ajuster mentalement selon son propre rythme) :
+   - CHESTS_PER_MATCH : nombre de Coffres Sprite ouverts en moyenne par partie
+     en farmant une zone dense comme Sinister Strip.
+   - MATCH_MINUTES : dur\u00e9e moyenne d'une partie de farm (looter puis mourir/quitter).
+   Calcul : esp\u00e9rance du nombre d'essais pour un premier succ\u00e8s = 1 / p (loi g\u00e9om\u00e9trique),
+   converti en parties puis en dur\u00e9e. C'est une moyenne th\u00e9orique, pas une garantie :
+   la vraie dur\u00e9e peut varier \u00e9norm\u00e9ment d'une tentative \u00e0 l'autre. */
+const CHESTS_PER_MATCH = 3;
+const MATCH_MINUTES = 12;
+
+function fmtDuration(minutes){
+  if (minutes < 1) return "< 1 min";
+  if (minutes < 60) return Math.round(minutes) + " min";
+  const hours = minutes / 60;
+  if (hours < 24) return (hours < 10 ? hours.toFixed(1) : Math.round(hours)) + " h";
+  const days = hours / 24;
+  if (days < 30) return Math.round(days) + " j";
+  const months = days / 30;
+  if (months < 12) return Math.round(months) + " mois";
+  const years = days / 365;
+  if (years < 1000) return Math.round(years) + " an" + (years >= 2 ? "s" : "");
+  return "des mill\u00e9naires (valeur th\u00e9orique)";
+}
+
+function getRateNumeric(sprite, variantKey){
+  const range = parseRange(sprite.drop);
+  if (!range) return null;
+  const midBase = (range[0] + range[1]) / 2;
+  if (variantKey === "base") return midBase;
+  const mult = VARIANT_MULT[variantKey];
+  if (mult === undefined) return null;
+  return midBase * mult;
+}
+
+function estimateCaptureTime(sprite, variantKey){
+  const pct = getRateNumeric(sprite, variantKey);
+  if (pct === null || pct <= 0) return null;
+  const p = pct / 100;
+  const expectedChests = 1 / p;
+  const expectedMatches = expectedChests / CHESTS_PER_MATCH;
+  const expectedMinutes = expectedMatches * MATCH_MINUTES;
+  return fmtDuration(expectedMinutes);
+}
+function countDone(){ return Object.entries(state.progress).filter(([k,v]) => v && !k.startsWith("mastery:")).length; }
+function countMastery(){ return Object.entries(state.progress).filter(([k,v]) => v && k.startsWith("mastery:")).length; }
+function spriteDoneCount(sprite){ return sprite.variants.filter(v => state.progress[sprite.id+":"+v]).length; }
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+/* ----- Checklist : utilitaires de date + reset automatique ----- */
+function pad2(n){ return n < 10 ? "0"+n : ""+n; }
+function todayStr(){ const d = new Date(); return d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate()); }
+function mondayOfWeekStr(){
+  const d = new Date();
+  const day = d.getDay(); // 0=dimanche
+  const diff = (day === 0 ? -6 : 1) - day; // recule jusqu'au lundi de la semaine en cours
+  const monday = new Date(d);
+  monday.setDate(d.getDate() + diff);
+  return monday.getFullYear()+"-"+pad2(monday.getMonth()+1)+"-"+pad2(monday.getDate());
+}
+function ensureChecklistFresh(){
+  const c = state.checklist;
+  const t = todayStr(), w = mondayOfWeekStr();
+  let changed = false;
+  if (c.dailyDate !== t){ c.dailyDate = t; c.dailyDone = {}; changed = true; }
+  if (c.weekStart !== w){ c.weekStart = w; c.weeklyDone = {}; changed = true; }
+  if (changed) persistChecklist();
+}
+function toggleDailyTask(id){
+  state.checklist.dailyDone[id] = !state.checklist.dailyDone[id];
+  persistChecklist();
+  renderPage();
+}
+function toggleWeeklyTask(id){
+  state.checklist.weeklyDone[id] = !state.checklist.weeklyDone[id];
+  persistChecklist();
+  renderPage();
+}
+
+/* ----- Page Historique ----- */
+function relTime(ts){
+  const diffMs = Date.now() - ts;
+  const min = Math.floor(diffMs / 60000);
+  if (min < 1) return "\u00e0 l'instant";
+  if (min < 60) return "il y a " + min + " min";
+  const h = Math.floor(min / 60);
+  if (h < 24) return "il y a " + h + " h";
+  const d = Math.floor(h / 24);
+  if (d < 7) return "il y a " + d + " j";
+  const dt = new Date(ts);
+  return pad2(dt.getDate()) + "/" + pad2(dt.getMonth()+1) + "/" + dt.getFullYear();
+}
+function renderHistoryPage(){
+  if (!state.history.length){
+    return '<div class="no-results">Aucune capture enregistr\u00e9e pour l\u2019instant.<br>Coche une variante dans la Collection pour commencer ton historique.</div>';
+  }
+  let html = '<div class="glass section-card">';
+  html += '  <div class="setting-sub" style="margin-bottom:10px;">' + state.history.length + ' capture' + (state.history.length>1?'s':'') + ' enregistr\u00e9e' + (state.history.length>1?'s':'') + ' (50 derni\u00e8res conserv\u00e9es).</div>';
+  html += state.history.map((h, i) => {
+    const [spriteId, variantKey] = h.key.split(":");
+    const sprite = SPRITES.find(s => s.id === spriteId);
+    if (!sprite) return "";
+    const v = VARIANTS.find(x => x.key === variantKey);
+    const xp = xpForCapture(sprite, variantKey);
+    return '<div class="achv-mini-row stagger-in" style="animation-delay:' + Math.min(i*0.02, 0.3) + 's">' +
+      '<div class="ic" style="background:' + v.glow + ';border-color:' + v.color + '55;">' + sprite.emoji + '</div>' +
+      '<div style="flex:1;"><div class="n">' + sprite.name + ' <span style="color:' + v.color + ';">' + v.label + '</span></div>' +
+      '<div class="d">' + relTime(h.ts) + ' \u00b7 +' + xp + ' XP</div></div>' +
+      '</div>';
+  }).join("");
+  html += '</div>';
+  return html;
+}
+
+function showToast(message, icon){
+  const stack = document.getElementById("toastStack");
+  const el = document.createElement("div");
+  el.className = "toast";
+  el.innerHTML = '<span>' + (icon||"") + '</span><span>' + escapeHtml(message) + '</span>';
+  stack.appendChild(el);
+  setTimeout(() => el.remove(), 2800);
+}
+
+function fireConfetti(){
+  const colors = ["#7C6AE8","#E85D9C","#E8B84B"];
+  const n = 26;
+  for(let i=0;i<n;i++){
+    const el = document.createElement("div");
+    el.className = "confetti-piece";
+    const size = 6 + Math.random()*6;
+    el.style.width = size+"px"; el.style.height = (size*0.4)+"px";
+    el.style.left = (Math.random()*100)+"vw";
+    el.style.background = colors[i % colors.length];
+    el.style.animationDuration = (1.6 + Math.random()*1.2)+"s";
+    el.style.animationDelay = (Math.random()*0.3)+"s";
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 3200);
+  }
+}
+
+/* ----------------------------------------------------------------
+   4. ICÔNES SVG (originales, dessinées pour cette app)
+   ---------------------------------------------------------------- */
+const ICONS = {
+  home: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 11.5 12 4l8.5 7.5"/><path d="M5.5 9.8V20h13V9.8"/><path d="M10 20v-6h4v6"/></svg>',
+  collection: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="7" height="7" rx="1.6"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.6"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.6"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.6"/></svg>',
+  map: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3.5 6v14L9 18l6 2 5.5-2V4L15 6 9 4Z"/><path d="M9 4v14M15 6v14"/></svg>',
+  news: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="14" rx="2"/><path d="M7.5 9h9M7.5 12.5h9M7.5 16h5"/></svg>',
+  settings: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 13.5a7.7 7.7 0 0 0 0-3l2-1.5-2-3.4-2.4.7a7.5 7.5 0 0 0-2.6-1.5L14 2.5h-4l-.4 2.3a7.5 7.5 0 0 0-2.6 1.5l-2.4-.7-2 3.4 2 1.5a7.7 7.7 0 0 0 0 3l-2 1.5 2 3.4 2.4-.7c.76.66 1.64 1.17 2.6 1.5l.4 2.3h4l.4-2.3a7.5 7.5 0 0 0 2.6-1.5l2.4.7 2-3.4-2-1.5Z"/></svg>',
+  search: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>',
+  chevron: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>',
+  back: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"/></svg>',
+  close: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6 6 18"/></svg>',
+  pin: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-6.1-6.5-11A6.5 6.5 0 0 1 18.5 10c0 4.9-6.5 11-6.5 11Z"/><circle cx="12" cy="10" r="2.2"/></svg>',
+  trophy: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h10v4a5 5 0 0 1-10 0V4Z"/><path d="M7 5H4a1 1 0 0 0-1 1v1a4 4 0 0 0 4 4"/><path d="M17 5h3a1 1 0 0 1 1 1v1a4 4 0 0 1-4 4"/><path d="M12 13v3M9 20h6M10 16.5h4v2a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-2Z"/></svg>',
+  sparkle: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5c.6 2.8 1.4 4.5 2.6 5.7 1.2 1.2 2.9 2 5.7 2.6-2.8.6-4.5 1.4-5.7 2.6-1.2 1.2-2 2.9-2.6 5.7-.6-2.8-1.4-4.5-2.6-5.7-1.2-1.2-2.9-2-5.7-2.6 2.8-.6 4.5-1.4 5.7-2.6 1.2-1.2 2-2.9 2.6-5.7Z"/><path d="M19 3v3M17.5 4.5h3"/></svg>',
+  chart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M4 20h16"/></svg>',
+};
+
+/* ----------------------------------------------------------------
+   5. NAVIGATION — coquille (topbar + navbar) + routeur de pages
+   ---------------------------------------------------------------- */
+const PAGES = [
+  { id:"home", label:"Accueil", title:"Sprite Dex", icon:"home", color:"#7C6AE8" },
+  { id:"collection", label:"Collection", title:"Collection", icon:"collection", color:"#E85D9C" },
+  { id:"map", label:"Carte", title:"Carte des zones", icon:"map", color:"#5DA9E8" },
+  { id:"achievements", label:"Succ\u00e8s", title:"Succ\u00e8s", icon:"trophy", color:"#E8B84B" },
+  { id:"news", label:"News", title:"Sprite News", icon:"news", color:"#8FE0A0" },
+  { id:"settings", label:"Param\u00e8tres", title:"Param\u00e8tres", icon:"settings", color:"#AEB4C4" },
+];
+
+function goTo(pageId, opts){
+  // Détermine le sens du glissement en comparant la position des onglets dans PAGES :
+  // si on va vers un onglet plus à droite dans la barre de nav -> le contenu entre par la droite,
+  // si on va vers un onglet plus à gauche -> il entre par la gauche.
+  // "stats" n'est pas un onglet de la barre (page secondaire ouverte depuis Accueil) : pas de sens défini, on garde un simple fondu.
+  const oldIdx = PAGES.findIndex(p => p.id === state.page);
+  const newIdx = PAGES.findIndex(p => p.id === pageId);
+  let direction = null;
+  if (oldIdx !== -1 && newIdx !== -1 && oldIdx !== newIdx){
+    direction = newIdx > oldIdx ? "forward" : "back";
+  }
+  state.page = pageId;
+  if (opts && opts.zone) { state.activeZone = opts.zone; }
+  renderShell();
+  renderPage(direction);
+  window.scrollTo(0, 0);
+}
+
+function renderShell(){
+  // Barre de navigation
+  const nav = document.getElementById("navbar");
+  nav.innerHTML = PAGES.map(p => {
+    const active = state.page === p.id || (p.id === "home" && state.page === "stats");
+    return '<button class="nav-btn ' + (active ? "active" : "") + '" style="' + (active ? "color:" + p.color + ";" : "") + '" aria-label="' + p.label + '" aria-current="' + (active?"page":"false") + '" onclick="goTo(\'' + p.id + '\')">' +
+      ICONS[p.icon] + '<span>' + p.label + '</span></button>';
+  }).join("");
+
+  // En-tête
+  const top = document.getElementById("topbar");
+  const isSub = state.page === "stats" || state.page === "history";
+  if (isSub){
+    const subTitle = state.page === "stats" ? "Statistiques" : "Historique";
+    top.innerHTML = '<div style="display:flex;align-items:center;gap:10px;">' +
+      '<button class="back-btn" aria-label="Retour" onclick="goTo(\'home\')">' + ICONS.back + '</button>' +
+      '<h1 style="font-size:1.25rem;">' + subTitle + '</h1></div>';
+  } else {
+    const meta = PAGES.find(p => p.id === state.page);
+    top.innerHTML = '<div class="eyebrow">' + ICONS.sparkle.replace('<svg ', '<svg style="width:12px;height:12px;" ') + ' Chapitre 7 \u00b7 Saison 3 \u00b7 Runners</div><h1>' + meta.title + '</h1>';
+  }
+}
+
+function renderPage(navDirection){
+  const c = document.getElementById("pageContainer");
+  const renderers = { home: renderHome, collection: renderCollection, map: renderMapPage, achievements: renderAchievementsPage, news: renderNews, settings: renderSettings, stats: renderStats, history: renderHistoryPage };
+  const html = (renderers[state.page] || renderHome)();
+  // On enveloppe le contenu dans une div fraîchement créée à chaque appel.
+  // Une animation CSS ne se rejoue jamais sur un élément déjà présent dans le DOM
+  // (ici #pageContainer, qui ne change pas), même si on change son innerHTML.
+  // En revanche, un nouvel élément inséré dans le DOM déclenche toujours ses
+  // animations CSS dès son insertion : c'est ce qu'on exploite ici.
+  // navDirection n'est fourni QUE par goTo() (vraie navigation d'onglet) :
+  // les autres appels à renderPage() (cocher une case, changer un réglage, etc.)
+  // n'en passent pas et gardent donc le simple fondu, pour ne pas faire glisser
+  // toute la page à chaque interaction qui ne change pas d'onglet.
+  const animClass = navDirection === "forward" ? "page-slide-right"
+                   : navDirection === "back" ? "page-slide-left"
+                   : "page-fade";
+  c.innerHTML = '<div class="' + animClass + '">' + html + '</div>';
+  // Actions post-rendu spécifiques à certaines pages
+  if (state.page === "map") { attachMapGestures(); renderMapPins(); }
+  checkAchievements();
+}
+
+/* ----------------------------------------------------------------
+   6a. PAGE ACCUEIL
+   ---------------------------------------------------------------- */
+function ringSVG(pct, size, strokeW){
+  size = size || 168; strokeW = strokeW || 14;
+  const r = (size - strokeW) / 2;
+  const c = 2 * Math.PI * r;
+  const offset = c * (1 - pct/100);
+  const id = "ringGrad";
+  return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 '+size+' '+size+'">' +
+    '<defs><linearGradient id="'+id+'" x1="0%" y1="0%" x2="100%" y2="100%">' +
+      '<stop offset="0%" stop-color="#7C6AE8"/><stop offset="55%" stop-color="#E85D9C"/><stop offset="100%" stop-color="#E8B84B"/>' +
+    '</linearGradient></defs>' +
+    '<circle cx="'+size/2+'" cy="'+size/2+'" r="'+r+'" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="'+strokeW+'"/>' +
+    '<circle cx="'+size/2+'" cy="'+size/2+'" r="'+r+'" fill="none" stroke="url(#'+id+')" stroke-width="'+strokeW+'" stroke-linecap="round" ' +
+      'stroke-dasharray="'+c+'" stroke-dashoffset="'+offset+'" transform="rotate(-90 '+size/2+' '+size/2+')" style="transition: stroke-dashoffset .8s cubic-bezier(.22,1,.36,1);"/>' +
+    '</svg>';
+}
+
+function renderChecklistSection(){
+  ensureChecklistFresh();
+  const todayIdx = new Date().getDay();
+  const dailyDoneCount = DAILY_TASKS.filter(t => state.checklist.dailyDone[t.id]).length;
+  const weeklyDoneCount = WEEKLY_TASKS.filter(t => state.checklist.weeklyDone[t.id]).length;
+
+  let html = '<div class="glass section-card">';
+  html += '  <div class="section-title">' + ICONS.chart.replace('<svg ', '<svg class="ico" ') + 'Checklist</div>';
+
+  html += '  <div style="font-size:.7rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-2);margin-bottom:8px;">Aujourd\u2019hui (' + DAY_NAMES[todayIdx] + ') \u00b7 ' + dailyDoneCount + '/' + DAILY_TASKS.length + '</div>';
+  DAILY_TASKS.forEach((t, i) => {
+    const done = !!state.checklist.dailyDone[t.id];
+    html += '<div class="variant-row stagger-in" style="animation-delay:' + (i*0.04) + 's;' + (done?"border-color:var(--c-green);background:rgba(143,224,160,.1);":"") + '">';
+    html += '  <button class="variant-toggle" onclick="toggleDailyTask(\'' + t.id + '\')">';
+    html += '    <span class="vt-top" style="color:' + (done?"var(--c-green)":"var(--text-0)") + '"><span class="vbox ' + (done?"checked":"") + '" style="' + (done?"border-color:var(--c-green);background:var(--c-green)":"") + '">' + (done?'\u2713':'') + '</span>' + t.icon + ' ' + t.label + '</span>';
+    html += '  </button>';
+    html += '</div>';
+  });
+
+  html += '  <div style="font-size:.7rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-2);margin:14px 0 8px;">Cette semaine \u00b7 ' + weeklyDoneCount + '/' + WEEKLY_TASKS.length + '</div>';
+  WEEKLY_TASKS.forEach((t, i) => {
+    const done = !!state.checklist.weeklyDone[t.id];
+    const isToday = t.day === todayIdx;
+    html += '<div class="variant-row stagger-in" style="animation-delay:' + (i*0.04) + 's;' + (done?"border-color:var(--c-green);background:rgba(143,224,160,.1);":isToday?"border-color:var(--c-gold);":"") + '">';
+    html += '  <button class="variant-toggle" onclick="toggleWeeklyTask(\'' + t.id + '\')">';
+    html += '    <span class="vt-top" style="color:' + (done?"var(--c-green)":"var(--text-0)") + '"><span class="vbox ' + (done?"checked":"") + '" style="' + (done?"border-color:var(--c-green);background:var(--c-green)":"") + '">' + (done?'\u2713':'') + '</span>' + t.icon + ' ' + t.label + (isToday && !done ? ' <span style="color:var(--c-gold);font-weight:700;">\u2022 aujourd\u2019hui</span>' : '') + '</span>';
+    html += '    <span class="vt-rate">' + t.detail + ' \u2014 ' + DAY_NAMES[t.day] + '</span>';
+    html += '  </button>';
+    html += '</div>';
+  });
+
+  html += '</div>';
+  return html;
+}
+
+function renderHome(){
+  const done = countDone(), masteryDone = countMastery();
+  const pct = Math.round((done/TOTAL)*100);
+  const unlocked = ACHIEVEMENTS.filter(a => a.check(state.progress, done, masteryDone));
+  const rarityOwnedIdx = SPRITES.filter(s => s.variants.some(v => state.progress[s.id+":"+v])).map(s => RARITY_INDEX[s.rarity]);
+  const avgRarity = rarityOwnedIdx.length ? (rarityOwnedIdx.reduce((a,b)=>a+b,0)/rarityOwnedIdx.length) : 0;
+  const avgRarityLabel = avgRarity ? RARITY_ORDER[Math.round(avgRarity)-1] : "\u2014";
+
+  // Derniers sprites obtenus (via historique horodaté)
+  const recent = state.history.slice(0,8).map(h => {
+    const [spriteId, variantKey] = h.key.split(":");
+    const sprite = SPRITES.find(s => s.id === spriteId);
+    if (!sprite) return null;
+    const v = VARIANTS.find(x => x.key === variantKey);
+    return { sprite, v };
+  }).filter(Boolean);
+
+  let html = '';
+  html += '<div class="glass section-card">';
+  html += '  <div class="ring-wrap">';
+  html += '    <div style="font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-2);margin-bottom:2px;">Progression globale</div>';
+  html += '    <div style="position:relative;display:flex;align-items:center;justify-content:center;">' + ringSVG(pct) +
+          '      <div style="position:absolute;display:flex;flex-direction:column;align-items:center;">' +
+          '        <div class="ring-num">' + pct + '<span class="of">%</span></div>' +
+          '      </div>' +
+          '    </div>';
+  html += '    <div class="ring-cap">' + done + ' / ' + TOTAL + ' collectibles \u00b7 ' + masteryDone + ' ma\u00eetris\u00e9s</div>';
+  html += '  </div>';
+  html += '  <div class="stat-grid">';
+  html += '    <div class="stat-mini stagger-in" style="animation-delay:0s;border-top:2px solid var(--c-purple);"><div class="v mono">' + done + '</div><div class="l">Obtenus</div></div>';
+  html += '    <div class="stat-mini stagger-in" style="animation-delay:.04s;border-top:2px solid var(--c-gold);"><div class="v mono">' + unlocked.length + '/' + ACHIEVEMENTS.length + '</div><div class="l">Succ\u00e8s</div></div>';
+  html += '    <div class="stat-mini stagger-in" style="animation-delay:.08s;border-top:2px solid var(--c-green);"><div class="v mono">' + masteryDone + '</div><div class="l">Ma\u00eetris\u00e9s</div></div>';
+  html += '    <div class="stat-mini stagger-in" style="animation-delay:.12s;border-top:2px solid ' + (RARITY_COLORS[avgRarityLabel]||'var(--border)') + ';"><div class="v" style="color:' + (RARITY_COLORS[avgRarityLabel]||'var(--text-0)') + '">' + avgRarityLabel + '</div><div class="l">Raret\u00e9 moy.</div></div>';
+  html += '  </div>';
+  html += '  <button class="btn btn-primary btn-block" style="margin-top:16px;" onclick="goTo(\'collection\')">Continuer la collection</button>';
+  html += '  <button class="btn btn-ghost btn-block" style="margin-top:8px;" onclick="goTo(\'stats\')">Voir toutes les statistiques</button>';
+  html += '</div>';
+
+  const lvl = levelInfo(computeTotalXP());
+  html += '<div class="glass section-card">';
+  html += '  <div class="section-title">' + ICONS.trophy.replace('<svg ', '<svg class="ico" style="color:var(--c-gold);" ') + 'Niveau Chasseur</div>';
+  html += '  <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px;">';
+  html += '    <div><span style="font-family:var(--f-display);font-size:1.6rem;font-weight:700;">Niveau ' + lvl.level + '</span>';
+  html += '    <span style="font-size:.8rem;color:var(--c-gold);font-weight:700;margin-left:6px;">' + lvl.title + '</span></div>';
+  html += '    <div style="font-size:.7rem;color:var(--text-2);font-family:var(--f-mono);">' + lvl.into + ' / ' + lvl.next + ' XP</div>';
+  html += '  </div>';
+  html += '  <div class="bar-row-track" style="height:9px;"><div class="bar-row-fill" style="width:' + lvl.pct + '%;background:var(--grad-aura);"></div></div>';
+  html += '  <div style="font-size:.68rem;color:var(--text-2);margin-top:8px;">' + (lvl.next - lvl.into) + ' XP avant le niveau ' + (lvl.level+1) + ' \u00b7 XP total : ' + lvl.xp + '</div>';
+  html += '</div>';
+
+  html += renderChecklistSection();
+
+  html += '<div class="glass section-card">';
+  html += '  <div class="section-title">' + ICONS.sparkle.replace('<svg ', '<svg class="ico" ') + 'Derniers Sprites obtenus</div>';
+  if (recent.length){
+    html += '<div class="hscroll">' + recent.map((r, i) =>
+      '<div class="mini-sprite stagger-in" style="animation-delay:' + Math.min(i*0.05, 0.3) + 's"><div class="emoji">' + r.sprite.emoji + '</div><div class="n">' + r.sprite.name + '</div>' +
+      '<span class="variant-tag" style="color:' + r.v.color + ';background:' + r.v.glow + '">' + r.v.label + '</span></div>'
+    ).join("") + '</div>';
+  } else {
+    html += '<div class="empty-hint">Coche ta premi\u00e8re variante dans la Collection pour la voir appara\u00eetre ici.</div>';
+  }
+  html += '  <button class="btn btn-ghost btn-block" style="margin-top:12px;" onclick="goTo(\'history\')">Voir l\u2019historique complet</button>';
+  html += '</div>';
+
+  html += '<div class="glass section-card">';
+  html += '  <div class="section-title">' + ICONS.trophy.replace('<svg ', '<svg class="ico" ') + 'Derniers succ\u00e8s d\u00e9bloqu\u00e9s</div>';
+  const recentAchv = unlocked.slice(-3).reverse();
+  if (recentAchv.length){
+    html += recentAchv.map((a, i) => '<div class="achv-mini-row stagger-in" style="animation-delay:' + (i*0.06) + 's"><div class="ic">' + a.icon + '</div><div><div class="n">' + a.name + '</div><div class="d">' + a.desc + '</div></div></div>').join("");
+  } else {
+    html += '<div class="empty-hint">Aucun succ\u00e8s d\u00e9bloqu\u00e9 pour le moment.</div>';
+  }
+  html += '  <button class="btn btn-ghost btn-block" style="margin-top:12px;" onclick="goTo(\'achievements\')">Voir tous les succ\u00e8s (' + unlocked.length + '/' + ACHIEVEMENTS.length + ')</button>';
+  html += '</div>';
+
+  return html;
+}
+
+/* ----------------------------------------------------------------
+   6b. PAGE COLLECTION + FICHE SPRITE
+   ---------------------------------------------------------------- */
+function sortSprites(list){
+  const by = state.sortBy;
+  const copy = list.slice();
+  if (by === "name") copy.sort((a,b) => a.name.localeCompare(b.name));
+  else if (by === "rarity") copy.sort((a,b) => RARITY_INDEX[b.rarity]-RARITY_INDEX[a.rarity]);
+  else if (by === "date") copy.sort((a,b) => { const [da,ma,ya]=a.added.split("/"); const [db,mb,yb]=b.added.split("/"); return new Date(yb,mb-1,db) - new Date(ya,ma-1,da); });
+  else if (by === "drop") copy.sort((a,b) => (parseRange(a.drop)?.[0]||0) - (parseRange(b.drop)?.[0]||0));
+  else if (by === "progress") copy.sort((a,b) => (spriteDoneCount(b)/b.variants.length) - (spriteDoneCount(a)/a.variants.length));
+  else if (by === "owned") copy.sort((a,b) => spriteDoneCount(b) - spriteDoneCount(a));
+  else if (by === "missing") copy.sort((a,b) => (b.variants.length-spriteDoneCount(b)) - (a.variants.length-spriteDoneCount(a)));
+  return copy;
+}
+
+const SORT_OPTIONS = [["name","Nom"],["rarity","Raret\u00e9"],["date","Date"],["drop","Taux"],["progress","Progr."],["owned","Poss."],["missing","Manquants"]];
+
+function getFilteredSortedSprites(){
+  let list = SPRITES.filter(s => {
+    if (state.favOnly && !state.favorites[s.id]) return false;
+    if (state.filterVariant !== "all" && !s.variants.includes(state.filterVariant)) return false;
+    if (state.search && !s.name.toLowerCase().includes(state.search.toLowerCase())) return false;
+    return true;
+  });
+  return sortSprites(list);
+}
+
+// Rend uniquement la liste (utilisé au premier affichage ET pour les mises à jour
+// de recherche/tri/filtre, afin de ne jamais reconstruire la barre de recherche
+// elle-même — ce qui casserait le focus et la position du curseur en cours de frappe).
+function renderSpriteListHTML(){
+  const list = getFilteredSortedSprites();
+  if (!list.length) return '<div class="no-results">Aucun Sprite ne correspond \u00e0 ces filtres.</div>';
+  return list.map((s, i) => {
+    const spriteDone = spriteDoneCount(s), spriteTotal = s.variants.length;
+    const pct = Math.round((spriteDone/spriteTotal)*100);
+    const isFav = !!state.favorites[s.id];
+    return '<button class="sprite-card stagger-in" style="width:100%;text-align:left;animation-delay:' + Math.min(i*0.035, 0.4) + 's" onclick="openSheet(\'' + s.id + '\')">' +
+      '<div class="emoji-box">' + s.emoji + (isFav ? '<div class="fav-dot">\u2665</div>' : '') + '</div>' +
+      '<div class="sc-body">' +
+      '  <div class="sc-top"><span class="sc-name">' + s.name + '</span>' +
+      '  <span class="rarity-pill" style="color:' + RARITY_COLORS[s.rarity] + ';border:1px solid ' + RARITY_COLORS[s.rarity] + '55;">' + s.rarity + '</span></div>' +
+      '  <div class="sc-note">' + s.note + '</div>' +
+      '  <div class="sc-bar-bg"><div class="sc-bar-fill" style="width:' + pct + '%;background:var(--grad-aura);"></div></div>' +
+      '</div>' +
+      '<div class="sc-count ' + (spriteDone===spriteTotal?"full":"") + '">' + spriteDone + '/' + spriteTotal + '</div>' +
+      ICONS.chevron.replace('<svg ', '<svg class="sc-chevron" ') +
+      '</button>';
+  }).join("");
+}
+
+function renderCollection(){
+  let html = '';
+  html += '<div class="search-bar">' + ICONS.search +
+    '<input type="text" id="collectionSearchInput" placeholder="Rechercher un Sprite..." value="' + escapeHtml(state.search) + '" oninput="onSearch(this.value)" aria-label="Rechercher un Sprite">' +
+    '<button class="clear-x" id="searchClearBtn" onclick="onSearch(\'\')" aria-label="Effacer" style="' + (state.search?"opacity:1;":"opacity:0;pointer-events:none;transform:scale(.7);") + '">\u2715</button>' +
+    '</div>';
+
+  html += '<div class="chip-row" role="tablist" aria-label="Filtrer par variante">';
+  html += '<button class="chip ' + (state.filterVariant==="all"?"active":"") + '" data-variant-chip="all" style="' + (state.filterVariant==="all"?"background:var(--grad-aura);":"") + '" onclick="setFilterVariant(\'all\')">Tous</button>';
+  VARIANTS.forEach(v => {
+    const active = state.filterVariant === v.key;
+    html += '<button class="chip ' + (active?"active":"") + '" data-variant-chip="' + v.key + '" style="' + (active ? "background:"+v.color+";" : "") + '" onclick="setFilterVariant(\'' + v.key + '\')">' + v.label + '</button>';
+  });
+  html += '<button class="chip ' + (state.favOnly?"active":"") + '" id="favOnlyChip" style="' + (state.favOnly?"background:var(--c-pink);":"") + '" onclick="toggleFavOnly()">\u2665 Favoris</button>';
+  html += '</div>';
+
+  html += '<div class="chip-row" role="tablist" aria-label="Trier par">';
+  html += SORT_OPTIONS.map(([k,l]) => '<button class="chip ' + (state.sortBy===k?"active":"") + '" data-sort-chip="' + k + '" style="' + (state.sortBy===k?"background:var(--grad-aura);":"") + '" onclick="setSortBy(\'' + k + '\')">' + l + '</button>').join("");
+  html += '</div>';
+
+  html += '<div id="spriteListContainer">' + renderSpriteListHTML() + '</div>';
+  return html;
+}
+
+// Met à jour uniquement la liste (et les puces actives), sans toucher à la barre de
+// recherche : préserve le focus, la position du curseur et le défilement en cours.
+function updateCollectionView(){
+  const listEl = document.getElementById("spriteListContainer");
+  if (!listEl) { renderPage(); return; } // repli si on n'est plus sur la page Collection
+  listEl.innerHTML = renderSpriteListHTML();
+  const clearBtn = document.getElementById("searchClearBtn");
+  if (clearBtn){
+    if (state.search){ clearBtn.style.opacity = "1"; clearBtn.style.pointerEvents = "auto"; clearBtn.style.transform = "scale(1)"; }
+    else { clearBtn.style.opacity = "0"; clearBtn.style.pointerEvents = "none"; clearBtn.style.transform = "scale(.7)"; }
+  }
+  refreshChipStates();
+}
+function refreshChipStates(){
+  const variantChips = document.querySelectorAll('[data-variant-chip]');
+  variantChips.forEach(btn => {
+    const key = btn.getAttribute('data-variant-chip');
+    const active = state.filterVariant === key;
+    btn.classList.toggle('active', active);
+    btn.style.background = active ? (key === 'all' ? 'var(--grad-aura)' : (VARIANTS.find(v=>v.key===key)||{}).color || '') : '';
+  });
+  const favChip = document.getElementById('favOnlyChip');
+  if (favChip){ favChip.classList.toggle('active', state.favOnly); favChip.style.background = state.favOnly ? 'var(--c-pink)' : ''; }
+  const sortChips = document.querySelectorAll('[data-sort-chip]');
+  sortChips.forEach(btn => {
+    const key = btn.getAttribute('data-sort-chip');
+    const active = state.sortBy === key;
+    btn.classList.toggle('active', active);
+    btn.style.background = active ? 'var(--grad-aura)' : '';
+  });
+}
+
+function onSearch(v){
+  state.search = v;
+  updateCollectionView();
+}
+function setFilterVariant(v){ state.filterVariant = v; updateCollectionView(); }
+function setSortBy(v){ state.sortBy = v; updateCollectionView(); }
+function toggleFavOnly(){ state.favOnly = !state.favOnly; updateCollectionView(); }
+
+function toggleFavorite(spriteId){
+  state.favorites[spriteId] = !state.favorites[spriteId];
+  persistFavorites();
+  showToast(state.favorites[spriteId] ? "Ajout\u00e9 aux favoris" : "Retir\u00e9 des favoris", "\u2665");
+  renderPage();
+  if (state.sheetSpriteId === spriteId) renderSheetContent(spriteId);
+}
+
+function hapticFeedback(pattern){
+  if (!state.settings.vibrations) return;
+  try { if (navigator.vibrate) navigator.vibrate(pattern || 12); } catch(e) { /* non supporté sur cet appareil, ignoré silencieusement */ }
+}
+
+function toggle(spriteId, variantKey){
+  const k = spriteId + ":" + variantKey;
+  const nowTrue = !state.progress[k];
+  const levelBefore = levelInfo(computeTotalXP()).level;
+  state.progress[k] = nowTrue;
+  hapticFeedback(nowTrue ? [14] : 8);
+  if (nowTrue){
+    state.history.unshift({ key:k, ts: Date.now() });
+    state.history = state.history.slice(0, 50);
+    showToast("Sprite obtenu !", "\u2728");
+  } else {
+    state.history = state.history.filter(h => h.key !== k);
+  }
+  persistProgress(); persistHistory();
+  const levelAfter = levelInfo(computeTotalXP()).level;
+  if (levelAfter > levelBefore && levelAfter > state.levelSeen){
+    state.levelSeen = levelAfter;
+    persistLevelSeen();
+    hapticFeedback([10,40,10]);
+    setTimeout(() => showToast("Niveau " + levelAfter + " atteint \u2014 " + titleForLevel(levelAfter) + " !", "\u{1f31f}"), 350);
+  }
+  renderPage();
+  if (state.sheetSpriteId === spriteId) renderSheetContent(spriteId);
+}
+function toggleMastery(spriteId, variantKey){
+  if (!state.progress[spriteId + ":" + variantKey]){
+    showToast("Obtiens d'abord cette variante", "\u26a0\ufe0f");
+    return;
+  }
+  const k = "mastery:" + spriteId + ":" + variantKey;
+  state.progress[k] = !state.progress[k];
+  hapticFeedback(10);
+  persistProgress();
+  renderPage();
+  if (state.sheetSpriteId === spriteId) renderSheetContent(spriteId);
+}
+function resetAll(){
+  if (confirm("R\u00e9initialiser toute la progression ? Cette action est irr\u00e9versible.")){
+    state.progress = {}; state.history = [];
+    persistProgress(); persistHistory();
+    renderPage();
+    showToast("Progression r\u00e9initialis\u00e9e", "\u21ba");
+  }
+}
+
+/* ----- Fiche Sprite : bottom sheet ----- */
+function openSheet(spriteId){
+  state.sheetSpriteId = spriteId;
+  renderSheetContent(spriteId);
+  document.getElementById("sheetBackdrop").classList.add("show");
+  document.getElementById("sheet").classList.add("show");
+}
+function closeSheet(){
+  document.getElementById("sheetBackdrop").classList.remove("show");
+  document.getElementById("sheet").classList.remove("show");
+  state.sheetSpriteId = null;
+}
+function renderSheetContent(spriteId){
+  const s = SPRITES.find(x => x.id === spriteId);
+  if (!s) return;
+  const isFav = !!state.favorites[s.id];
+  let html = '<div class="sheet-handle"></div>';
+  html += '<div class="sheet-head">';
+  html += '  <div class="sheet-emoji">' + s.emoji + '</div>';
+  html += '  <div style="flex:1;min-width:0;">';
+  html += '    <div id="sheetTitleText" class="sheet-title">' + s.name + '</div>';
+  html += '    <span class="rarity-pill" style="color:' + RARITY_COLORS[s.rarity] + ';border:1px solid ' + RARITY_COLORS[s.rarity] + '55;">' + s.rarity + '</span>';
+  html += '  </div>';
+  html += '  <button class="sheet-fav ' + (isFav?"on":"") + '" aria-label="Basculer favori" onclick="toggleFavorite(\'' + s.id + '\')">\u2665</button>';
+  html += '  <button class="sheet-close" aria-label="Fermer" onclick="closeSheet()">' + ICONS.close + '</button>';
+  html += '</div>';
+  html += '<div class="sheet-note">' + s.note + '</div>';
+  html += '<div class="sheet-meta-row"><span class="meta-tag">Ajout\u00e9 le ' + s.added + '</span><span class="meta-tag">Taux de base : ' + s.drop + '</span></div>';
+
+  html += '<div class="rate-grid">';
+  ["base","gold","gummy","galaxy"].forEach(vk => {
+    const v = VARIANTS.find(x=>x.key===vk);
+    html += '<div class="rate-card"><div class="rl" style="color:' + v.color + '">' + v.label + '</div><div class="rv mono">' + (s.variants.includes(vk) ? variantRateLabel(s, vk) : "\u2014") + '</div></div>';
+  });
+  html += '</div>';
+
+  html += '<div class="section-title" style="margin-top:18px;">Variantes & progression</div>';
+  s.variants.forEach((vk, i) => {
+    const v = VARIANTS.find(x => x.key === vk);
+    const checked = !!state.progress[s.id + ":" + vk];
+    const mastered = !!state.progress["mastery:" + s.id + ":" + vk];
+    html += '<div class="variant-row stagger-in" style="animation-delay:' + (i*0.05) + 's;' + (checked ? "border-color:"+v.color+";background:"+v.glow : "") + '">';
+    html += '  <button class="variant-toggle" onclick="toggle(\'' + s.id + '\',\'' + vk + '\')">';
+    html += '    <span class="vt-top" style="color:' + (checked?v.color:"var(--text-0)") + '"><span class="vbox ' + (checked?"checked":"") + '" style="' + (checked?"border-color:"+v.color+";background:"+v.color:"") + '">' + (checked?'\u2713':'') + '</span>' + v.label + '</span>';
+    html += '    <span class="vt-rate mono">' + variantRateLabel(s, vk) + ' \u00b7 \u23f1\ufe0f ~' + (estimateCaptureTime(s, vk) || "?") + '</span>';
+    html += '  </button>';
+    html += '  <button class="mastery-toggle ' + (mastered?"on":"") + '" style="' + (checked?"":"opacity:.4;") + '" title="' + (checked?"":"Obtiens d\u2019abord cette variante") + '" onclick="toggleMastery(\'' + s.id + '\',\'' + vk + '\')"><span class="mbox" style="' + (mastered?"border-color:var(--c-green);background:var(--c-green)":"") + '">' + (mastered?'\u2713':'') + '</span>Ma\u00eetris\u00e9</button>';
+    html += '</div>';
+  });
+
+  html += '<div class="sheet-tip">\u{1f4a1} ' + s.tip + '</div>';
+  if (s.zone){
+    html += '<button class="sheet-maplink" onclick="closeSheet(); goTo(\'map\', {zone:\'' + s.zone + '\'});">' + ICONS.pin + ' Voir sur la carte</button>';
+  }
+
+  document.getElementById("sheet").innerHTML = html;
+}
+
+/* ----------------------------------------------------------------
+   6c. PAGE CARTE — pan / zoom + filtres + légende
+   ---------------------------------------------------------------- */
+function renderMapPage(){
+  let html = '';
+  html += '<p class="map-disclaimer">Carte stylis\u00e9e non-officielle (pas la vraie carte du jeu, prot\u00e9g\u00e9e par Epic Games) \u2014 sert juste \u00e0 visualiser o\u00f9 se trouvent les zones cit\u00e9es dans les astuces. Pince pour zoomer, glisse pour te d\u00e9placer, appuie sur un point.</p>';
+  html += '<div class="chip-row"><button class="chip ' + (state.mapFilter!=="vault"?"active":"") + '" id="mapChipAll" style="' + (state.mapFilter!=="vault"?"background:var(--grad-aura);":"") + '" onclick="setMapFilter(\'all\')">Toutes les zones</button>';
+  html += '<button class="chip ' + (state.mapFilter==="vault"?"active":"") + '" id="mapChipVault" style="' + (state.mapFilter==="vault"?"background:var(--c-gold);":"") + '" onclick="setMapFilter(\'vault\')">Avec Vault Epic</button></div>';
+  html += '<div class="map-legend"><div class="li"><span class="sw" style="background:var(--text-2);"></span>Zone standard</div><div class="li"><span class="sw" style="background:var(--c-gold);"></span>Zone s\u00e9lectionn\u00e9e</div><div class="li"><span class="sw" style="border:2px dashed var(--border-strong);width:9px;height:9px;border-radius:50%;background:transparent;"></span>Vault Epic</div></div>';
+  html += '<div class="map-viewport glass" id="mapViewport"><div class="map-inner" id="mapInner"></div>' +
+          '<div class="map-controls">' +
+          '  <button class="map-ctrl-btn" aria-label="Zoomer" onclick="mapZoomBy(1.3)">+</button>' +
+          '  <button class="map-ctrl-btn" aria-label="D\u00e9zoomer" onclick="mapZoomBy(0.77)">\u2212</button>' +
+          '  <button class="map-ctrl-btn" aria-label="R\u00e9initialiser la vue" onclick="mapResetView()" style="font-size:.62rem;">\u21ba</button>' +
+          '</div></div>';
+  html += '<div class="map-tooltip glass" id="mapTooltip"></div>';
+  return html;
+}
+function setMapFilter(f){
+  state.mapFilter = f;
+  const all = document.getElementById("mapChipAll"), vault = document.getElementById("mapChipVault");
+  if (all && vault){
+    all.classList.toggle("active", f !== "vault"); all.style.background = f !== "vault" ? "var(--grad-aura)" : "";
+    vault.classList.toggle("active", f === "vault"); vault.style.background = f === "vault" ? "var(--c-gold)" : "";
+  }
+  renderMapPins();
+}
+
+function renderMapPins(){
+  const inner = document.getElementById("mapInner");
+  if (!inner) return;
+  const zones = MAP_ZONES.filter(z => state.mapFilter !== "vault" || z.vault);
+  inner.innerHTML = zones.map((z, i) => {
+    const isActive = state.activeZone === z.id;
+    return '<div class="map-pin ' + (z.vault?"vault":"") + ' ' + (isActive?"highlight":"") + '" style="left:' + z.x + '%;top:' + z.y + '%;animation-delay:' + (i*0.04) + 's" onclick="showZone(\'' + z.id + '\')" role="button" tabindex="0" aria-label="' + z.name + '">' +
+      z.icon + '<div class="map-label">' + z.name + '</div></div>';
+  }).join("");
+  updateMapTransform();
+  const tip = document.getElementById("mapTooltip");
+  if (!tip) return;
+  if (state.activeZone){
+    const z = MAP_ZONES.find(zz => zz.id === state.activeZone);
+    if (z) tip.innerHTML = '<div class="stagger-in"><strong>' + z.icon + ' ' + z.name + '</strong><br>' + z.detail + '</div>';
+  } else {
+    tip.innerHTML = '<div class="stagger-in">Appuie sur une zone pour voir le d\u00e9tail, ou sur "Voir sur la carte" depuis une fiche Sprite.</div>';
+  }
+}
+function showZone(zoneId){ state.activeZone = zoneId; renderMapPins(); }
+
+function updateMapTransform(){
+  const inner = document.getElementById("mapInner");
+  if (!inner) return;
+  const { scale, tx, ty } = state.mapZoom;
+  inner.style.transform = 'translate(' + tx + 'px,' + ty + 'px) scale(' + scale + ')';
+}
+function mapZoomBy(factor){
+  const z = state.mapZoom;
+  z.scale = Math.min(3, Math.max(1, z.scale * factor));
+  updateMapTransform();
+}
+function mapResetView(){ state.mapZoom = { scale:1, tx:0, ty:0 }; updateMapTransform(); }
+
+function attachMapGestures(){
+  const vp = document.getElementById("mapViewport");
+  if (!vp) return;
+  let dragging = false, lastX=0, lastY=0, pinchStartDist=0, pinchStartScale=1;
+  const pts = new Map();
+
+  vp.addEventListener("pointerdown", (e) => {
+    vp.setPointerCapture(e.pointerId);
+    pts.set(e.pointerId, {x:e.clientX,y:e.clientY});
+    if (pts.size === 1){ dragging = true; lastX = e.clientX; lastY = e.clientY; }
+    if (pts.size === 2){
+      dragging = false;
+      const [a,b] = [...pts.values()];
+      pinchStartDist = Math.hypot(a.x-b.x, a.y-b.y);
+      pinchStartScale = state.mapZoom.scale;
+    }
+  });
+  vp.addEventListener("pointermove", (e) => {
+    if (!pts.has(e.pointerId)) return;
+    pts.set(e.pointerId, {x:e.clientX,y:e.clientY});
+    if (pts.size === 2){
+      const [a,b] = [...pts.values()];
+      const dist = Math.hypot(a.x-b.x, a.y-b.y);
+      state.mapZoom.scale = Math.min(3, Math.max(1, pinchStartScale * (dist/pinchStartDist)));
+      updateMapTransform();
+    } else if (dragging){
+      const dx = e.clientX - lastX, dy = e.clientY - lastY;
+      lastX = e.clientX; lastY = e.clientY;
+      const z = state.mapZoom;
+      z.tx += dx; z.ty += dy;
+      updateMapTransform();
+    }
+  });
+  const end = (e) => { pts.delete(e.pointerId); if (pts.size < 2) dragging = pts.size === 1; if (pts.size===0) dragging=false; };
+  vp.addEventListener("pointerup", end);
+  vp.addEventListener("pointercancel", end);
+  vp.addEventListener("wheel", (e) => { e.preventDefault(); mapZoomBy(e.deltaY < 0 ? 1.1 : 0.9); }, { passive:false });
+}
+
+/* ----------------------------------------------------------------
+   6d. PAGE NEWS
+   ---------------------------------------------------------------- */
+function renderNews(){
+  return NEWS.map((n,i) =>
+    '<div class="news-item ' + (n.upcoming?"upcoming":"") + '" style="animation-delay:' + (i*0.05) + 's">' +
+    '  <div class="news-card glass">' +
+    '    <div class="news-top"><span class="news-date">' + n.date + '</span>' +
+    '      <span class="news-badge" style="' + (n.upcoming ? "background:rgba(124,106,232,.18);color:var(--c-purple);" : n.tag==="Aujourd'hui" ? "background:rgba(232,184,75,.18);color:var(--c-gold);" : "background:rgba(255,255,255,.06);color:var(--text-2);") + '">' + n.tag + '</span></div>' +
+    '    <div class="news-title">' + n.title + '</div>' +
+    '    <div class="news-desc">' + n.desc + '</div>' +
+    '  </div></div>'
+  ).join("");
+}
+
+/* ----------------------------------------------------------------
+   6d-bis. PAGE SUCCÈS
+   ---------------------------------------------------------------- */
+function renderAchievementsPage(){
+  const done = countDone(), masteryDone = countMastery();
+  const unlocked = ACHIEVEMENTS.filter(a => a.check(state.progress, done, masteryDone));
+  const pct = Math.round((unlocked.length / ACHIEVEMENTS.length) * 100);
+
+  let html = '<div class="glass section-card">';
+  html += '  <div class="section-title">\u{1f3c6} Progression des succ\u00e8s</div>';
+  html += '  <div class="bar-row" style="margin-bottom:0;"><div class="bar-row-track"><div class="bar-row-fill" style="width:' + pct + '%;background:var(--grad-aura);"></div></div>' +
+          '  <div class="bar-row-count">' + unlocked.length + '/' + ACHIEVEMENTS.length + '</div></div>';
+  html += '</div>';
+
+  html += '<div class="chip-row">';
+  html += '<button class="chip ' + (state.achvFilter==="all"?"active":"") + '" id="achvChipAll" style="' + (state.achvFilter==="all"?"background:var(--grad-aura);":"") + '" onclick="setAchvFilter(\'all\')">Tous (' + ACHIEVEMENTS.length + ')</button>';
+  html += '<button class="chip ' + (state.achvFilter==="unlocked"?"active":"") + '" id="achvChipUnlocked" style="' + (state.achvFilter==="unlocked"?"background:var(--c-gold);":"") + '" onclick="setAchvFilter(\'unlocked\')">D\u00e9bloqu\u00e9s (' + unlocked.length + ')</button>';
+  html += '<button class="chip ' + (state.achvFilter==="locked"?"active":"") + '" id="achvChipLocked" style="' + (state.achvFilter==="locked"?"background:var(--bg-glass);border-color:var(--border-strong);color:var(--text-0);":"") + '" onclick="setAchvFilter(\'locked\')">Verrouill\u00e9s (' + (ACHIEVEMENTS.length-unlocked.length) + ')</button>';
+  html += '</div>';
+
+  html += '<div id="achvListContainer">' + renderAchievementsListHTML() + '</div>';
+  return html;
+}
+function renderAchievementsListHTML(){
+  const done = countDone(), masteryDone = countMastery();
+  let list = ACHIEVEMENTS.map(a => ({ a, unlocked: a.check(state.progress, done, masteryDone) }));
+  if (state.achvFilter === "unlocked") list = list.filter(x => x.unlocked);
+  if (state.achvFilter === "locked") list = list.filter(x => !x.unlocked);
+  if (!list.length) return '<div class="no-results">Aucun succ\u00e8s dans cette cat\u00e9gorie.</div>';
+  return '<div class="achv-grid" style="margin-top:4px;">' + list.map(({a, unlocked}, i) =>
+    '<div class="achv-card stagger-in ' + (unlocked?"unlocked":"") + '" style="animation-delay:' + Math.min(i*0.04, 0.4) + 's"><div class="ic">' + a.icon + '</div><div class="n">' + a.name + '</div><div class="d">' + a.desc + '</div></div>'
+  ).join("") + '</div>';
+}
+function setAchvFilter(f){
+  state.achvFilter = f;
+  const listEl = document.getElementById("achvListContainer");
+  if (!listEl) { renderPage(); return; }
+  listEl.innerHTML = renderAchievementsListHTML();
+  ["all","unlocked","locked"].forEach(key => {
+    const chip = document.getElementById("achvChip" + key.charAt(0).toUpperCase() + key.slice(1));
+    if (!chip) return;
+    const active = state.achvFilter === key;
+    chip.classList.toggle("active", active);
+    chip.style.background = active ? (key==="unlocked" ? "var(--c-gold)" : key==="locked" ? "var(--bg-glass)" : "var(--grad-aura)") : "";
+    chip.style.color = (active && key==="locked") ? "var(--text-0)" : "";
+    chip.style.borderColor = (active && key==="locked") ? "var(--border-strong)" : "";
+  });
+}
+
+/* ----------------------------------------------------------------
+   6e. PAGE STATISTIQUES
+   ---------------------------------------------------------------- */
+function renderStats(){
+  const done = countDone(), masteryDone = countMastery();
+  const pct = Math.round((done/TOTAL)*100);
+  const missing = TOTAL - done;
+
+  let html = '<div class="glass section-card">';
+  html += '<div class="donut-wrap">' + ringSVG(pct, 120, 11) +
+    '<div><div style="font-family:var(--f-display);font-size:1.7rem;font-weight:700;">' + pct + '%</div>' +
+    '<div style="font-size:.75rem;color:var(--text-1);">' + done + ' / ' + TOTAL + ' collectibles</div></div></div>';
+  html += '</div>';
+
+  html += '<div class="glass section-card"><div class="kpi-grid">';
+  html += '<div class="kpi stagger-in" style="animation-delay:0s"><div class="v mono">' + done + '</div><div class="l">Termin\u00e9s</div></div>';
+  html += '<div class="kpi stagger-in" style="animation-delay:.04s"><div class="v mono">' + missing + '</div><div class="l">Manquants</div></div>';
+  html += '<div class="kpi stagger-in" style="animation-delay:.08s"><div class="v mono">' + masteryDone + '</div><div class="l">Ma\u00eetris\u00e9s</div></div>';
+  html += '<div class="kpi stagger-in" style="animation-delay:.12s"><div class="v mono">' + Object.keys(state.favorites).filter(k=>state.favorites[k]).length + '</div><div class="l">Favoris</div></div>';
+  html += '</div></div>';
+
+  html += '<div class="glass section-card"><div class="section-title">\u{1f4ca} Progression par raret\u00e9</div>';
+  RARITY_ORDER.forEach(r => {
+    const spritesOfRarity = SPRITES.filter(s => s.rarity === r);
+    const totalR = spritesOfRarity.reduce((sum,s) => sum+s.variants.length, 0);
+    const doneR = spritesOfRarity.reduce((sum,s) => sum + s.variants.filter(v => state.progress[s.id+":"+v]).length, 0);
+    const pctR = totalR ? Math.round((doneR/totalR)*100) : 0;
+    html += '<div class="bar-row"><div class="bar-row-label" style="color:' + RARITY_COLORS[r] + '">' + r + '</div>' +
+      '<div class="bar-row-track"><div class="bar-row-fill" style="width:' + pctR + '%;background:' + RARITY_COLORS[r] + ';"></div></div>' +
+      '<div class="bar-row-count">' + doneR + '/' + totalR + '</div></div>';
+  });
+  html += '</div>';
+
+  html += '<div class="glass section-card"><div class="section-title">\u{1f3ae} Progression par variante</div>';
+  VARIANTS.forEach(v => {
+    const spritesWithVariant = SPRITES.filter(s => s.variants.includes(v.key));
+    const totalV = spritesWithVariant.length;
+    const doneV = spritesWithVariant.filter(s => state.progress[s.id+":"+v.key]).length;
+    const pctV = totalV ? Math.round((doneV/totalV)*100) : 0;
+    html += '<div class="bar-row"><div class="bar-row-label" style="color:' + v.color + '">' + v.label + '</div>' +
+      '<div class="bar-row-track"><div class="bar-row-fill" style="width:' + pctV + '%;background:' + v.color + ';"></div></div>' +
+      '<div class="bar-row-count">' + doneV + '/' + totalV + '</div></div>';
+  });
+  html += '</div>';
+
+  html += '<div class="glass section-card"><div class="section-title">\u{1f3c6} Succ\u00e8s</div>';
+  const unlocked = ACHIEVEMENTS.filter(a => a.check(state.progress, done, masteryDone));
+  html += '<div class="achv-summary-bar">' + unlocked.length + ' / ' + ACHIEVEMENTS.length + ' succ\u00e8s d\u00e9bloqu\u00e9s</div>';
+  html += '<div class="achv-grid">' + ACHIEVEMENTS.map((a, i) => {
+    const u = a.check(state.progress, done, masteryDone);
+    return '<div class="achv-card stagger-in ' + (u?"unlocked":"") + '" style="animation-delay:' + Math.min(i*0.03, 0.35) + 's"><div class="ic">' + a.icon + '</div><div class="n">' + a.name + '</div><div class="d">' + a.desc + '</div></div>';
+  }).join("") + '</div></div>';
+
+  return html;
+}
+
+/* ----------------------------------------------------------------
+   6f. PAGE PARAMÈTRES
+   ---------------------------------------------------------------- */
+function renderSettings(){
+  const s = state.settings;
+  let html = '';
+  html += '<div class="glass section-card">';
+  html += '  <div class="section-title">Apparence</div>';
+  html += '  <div class="setting-row"><div><div class="setting-label">Mode sombre</div><div class="setting-sub">Bascule entre th\u00e8me clair et sombre</div></div>' +
+          '    <button class="switch ' + (s.theme==="dark"?"on":"") + '" role="switch" aria-checked="' + (s.theme==="dark") + '" aria-label="Mode sombre" onclick="toggleTheme()"><span class="knob"></span></button></div>';
+  html += '  <div class="setting-row" style="flex-direction:column;align-items:stretch;">' +
+          '    <div class="setting-label" style="margin-bottom:8px;">Taille du texte</div>' +
+          '    <div class="segmented">' +
+          ['small','medium','large'].map(sz => '<button class="' + (s.textSize===sz?"active":"") + '" onclick="setTextSize(\'' + sz + '\')">' + ({small:"Petit",medium:"Moyen",large:"Grand"}[sz]) + '</button>').join("") +
+          '    </div></div>';
+  html += '  <div class="setting-row" style="flex-direction:column;align-items:stretch;">' +
+          '    <div class="setting-label" style="margin-bottom:8px;">Couleur d\u2019accent</div>' +
+          '    <div class="segmented">' +
+          Object.keys(ACCENTS).map(key => '<button class="' + (s.accent===key?"active":"") + '" onclick="setAccent(\'' + key + '\')">' + ACCENTS[key].label + '</button>').join("") +
+          '    </div></div>';
+  html += '  <div class="setting-row"><div><div class="setting-label">Mode compact</div><div class="setting-sub">Liste de la Collection plus dense, notes masqu\u00e9es</div></div>' +
+          '    <button class="switch ' + (s.compactMode?"on":"") + '" role="switch" aria-checked="' + (!!s.compactMode) + '" aria-label="Mode compact" onclick="toggleCompactMode()"><span class="knob"></span></button></div>';
+  html += '</div>';
+
+  html += '<div class="glass section-card">';
+  html += '  <div class="section-title">Confort</div>';
+  html += '  <div class="setting-row"><div><div class="setting-label">R\u00e9duire les animations</div><div class="setting-sub">D\u00e9sactive les transitions et effets d\u2019entr\u00e9e, ind\u00e9pendamment du r\u00e9glage de ton t\u00e9l\u00e9phone</div></div>' +
+          '    <button class="switch ' + (s.reducedMotion?"on":"") + '" role="switch" aria-checked="' + (!!s.reducedMotion) + '" aria-label="R\u00e9duire les animations" onclick="toggleReducedMotion()"><span class="knob"></span></button></div>';
+  html += '  <div class="setting-row"><div><div class="setting-label">Vibrations</div><div class="setting-sub">Petite vibration quand tu obtiens ou ma\u00eetrises un Sprite (si ton appareil le supporte)</div></div>' +
+          '    <button class="switch ' + (s.vibrations?"on":"") + '" role="switch" aria-checked="' + (!!s.vibrations) + '" aria-label="Vibrations" onclick="toggleVibrations()"><span class="knob"></span></button></div>';
+  html += '</div>';
+
+  html += '<div class="glass section-card">';
+  html += '  <div class="section-title">Donn\u00e9es</div>';
+  html += '  <div class="setting-row"><div><div class="setting-label">Exporter la progression</div><div class="setting-sub">Sauvegarde en fichier .json</div></div><button class="btn btn-ghost" onclick="exportData()">Exporter</button></div>';
+  html += '  <div class="setting-row"><div><div class="setting-label">Importer une sauvegarde</div><div class="setting-sub">Restaure depuis un fichier .json</div></div><button class="btn btn-ghost" onclick="document.getElementById(\'importInput\').click()">Importer</button></div>';
+  html += '  <input type="file" id="importInput" accept="application/json" onchange="importData(event)">';
+  html += '  <div class="setting-row"><div><div class="setting-label" style="color:var(--r-mythic);">R\u00e9initialiser</div><div class="setting-sub">Efface toute la progression</div></div><button class="btn btn-ghost" style="border-color:var(--r-mythic);color:var(--r-mythic);" onclick="resetAll()">R\u00e9initialiser</button></div>';
+  html += '</div>';
+
+  html += '<div class="glass section-card">';
+  html += '  <div class="section-title">\u2139\ufe0f \u00c0 propos des taux</div>';
+  html += '  <div class="about-note">Taux "Base" issus d\'une table d\u00e9taill\u00e9e communautaire (AccountShark, maj 02/07/2026) \u2014 non officiels, Epic ne publie pas ces chiffres. Taux Gold/Gummy/Galaxy calcul\u00e9s avec un ratio observ\u00e9 sur Aura/Striker (Base\u2192Gold \u00f782, \u2192Gummy \u00f7143, \u2192Galaxy \u00f7287) puis extrapol\u00e9s aux autres Sprites.</div>';
+  html += '  <div class="about-note">Temps de capture estim\u00e9 (\u23f1\ufe0f dans la fiche de chaque Sprite) = calcul th\u00e9orique en supposant ' + CHESTS_PER_MATCH + ' Coffres Sprite ouverts par partie sur ~' + MATCH_MINUTES + ' min de farm (zone dense type Sinister Strip). C\'est une moyenne statistique, pas une garantie : tu peux l\'obtenir bien plus vite... ou bien plus lentement.</div>';
+  html += '  <div class="about-note">Sprite Dex \u00b7 application non officielle, non affili\u00e9e \u00e0 Epic Games.</div>';
+  html += '</div>';
+
+  return html;
+}
+
+function toggleTheme(){
+  state.settings.theme = state.settings.theme === "dark" ? "light" : "dark";
+  applyTheme();
+  persistSettings();
+  renderPage();
+}
+function applyTheme(){
+  document.documentElement.setAttribute("data-theme", state.settings.theme);
+  document.querySelector('meta[name="theme-color"]').setAttribute("content", state.settings.theme === "dark" ? "#0B0D14" : "#F3F1FA");
+}
+function setTextSize(sz){
+  state.settings.textSize = sz;
+  applyTextSize();
+  persistSettings();
+  renderPage();
+}
+function applyTextSize(){
+  const map = { small: "15px", medium: "16px", large: "18.5px" };
+  document.documentElement.style.setProperty("--fs-root", map[state.settings.textSize] || "16px");
+}
+
+function toggleReducedMotion(){
+  state.settings.reducedMotion = !state.settings.reducedMotion;
+  applyReducedMotion();
+  persistSettings();
+  renderPage();
+}
+function applyReducedMotion(){
+  document.documentElement.classList.toggle("force-reduced-motion", !!state.settings.reducedMotion);
+}
+
+function toggleVibrations(){
+  state.settings.vibrations = !state.settings.vibrations;
+  persistSettings();
+  if (state.settings.vibrations) hapticFeedback(14);
+  renderPage();
+}
+
+function toggleCompactMode(){
+  state.settings.compactMode = !state.settings.compactMode;
+  applyCompactMode();
+  persistSettings();
+  renderPage();
+}
+function applyCompactMode(){
+  document.documentElement.classList.toggle("compact", !!state.settings.compactMode);
+}
+
+function setAccent(key){
+  state.settings.accent = key;
+  applyAccent();
+  persistSettings();
+  renderPage();
+}
+function applyAccent(){
+  const a = ACCENTS[state.settings.accent] || ACCENTS.aura;
+  const root = document.documentElement.style;
+  root.setProperty("--c-purple", a.purple);
+  root.setProperty("--c-pink", a.pink);
+  root.setProperty("--c-gold", a.gold);
+}
+
+function exportData(){
+  const payload = { progress: state.progress, favorites: state.favorites, settings: state.settings, exportedAt: new Date().toISOString() };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = "sprite-dex-sauvegarde.json";
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+  showToast("Fichier export\u00e9", "\u{1f4e4}");
+}
+function importData(evt){
+  const file = evt.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const data = JSON.parse(reader.result);
+      if (data.progress) state.progress = data.progress;
+      if (data.favorites) state.favorites = data.favorites;
+      if (data.settings) state.settings = Object.assign(state.settings, data.settings);
+      persistProgress(); persistFavorites(); persistSettings();
+      applyTheme(); applyTextSize();
+      renderPage();
+      showToast("Sauvegarde import\u00e9e", "\u2705");
+    } catch(e) {
+      showToast("Fichier invalide", "\u26a0\ufe0f");
+    }
+  };
+  reader.readAsText(file);
+  evt.target.value = "";
+}
+
+/* ----------------------------------------------------------------
+   6g. SUCCÈS — détection de déblocage + popup + confettis
+   ---------------------------------------------------------------- */
+let achvBaselineDone = false;
+function checkAchievements(){
+  const done = countDone(), masteryDone = countMastery();
+  const unlockedNow = ACHIEVEMENTS.filter(a => a.check(state.progress, done, masteryDone)).map(a => a.id);
+  const newOnes = unlockedNow.filter(id => !state.achvSeen.includes(id));
+  if (!newOnes.length) return;
+  state.achvSeen = state.achvSeen.concat(newOnes);
+  persistAchvSeen();
+  // Au tout premier chargement, une progression déjà existante peut "débloquer"
+  // plusieurs succès d'un coup : on les enregistre comme vus sans popup, pour ne
+  // pas fêter en confettis des succès obtenus avant l'installation de cette version.
+  if (!achvBaselineDone) return;
+  showUnlockPopup(ACHIEVEMENTS.find(a => a.id === newOnes[0]));
+}
+function showUnlockPopup(achv){
+  if (!achv) return;
+  const overlay = document.getElementById("unlockOverlay");
+  overlay.innerHTML = '<div class="unlock-card">' +
+    '<div class="unlock-eyebrow">Succ\u00e8s d\u00e9bloqu\u00e9</div>' +
+    '<div class="unlock-icon">' + achv.icon + '</div>' +
+    '<div class="unlock-name">' + achv.name + '</div>' +
+    '<div class="unlock-desc">' + achv.desc + '</div>' +
+    '<button class="btn btn-primary btn-block" style="margin-top:20px;" onclick="closeUnlockPopup()">G\u00e9nial !</button>' +
+  '</div>';
+  overlay.classList.add("show");
+  fireConfetti();
+}
+function closeUnlockPopup(){ document.getElementById("unlockOverlay").classList.remove("show"); }
+
+/* ----------------------------------------------------------------
+   7. INITIALISATION + PWA (manifest dynamique + service worker)
+   ---------------------------------------------------------------- */
+function initPWA(){
+  // Manifest généré en mémoire (garde tout dans un seul fichier HTML)
+  try {
+    const manifest = {
+      name: "Sprite Dex", short_name: "Sprite Dex", start_url: ".", display: "standalone",
+      background_color: "#0B0D14", theme_color: "#0B0D14",
+      icons: [{ src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%230B0D14'/%3E%3Ctext x='50' y='66' font-size='58' text-anchor='middle'%3E%E2%9C%A8%3C/text%3E%3C/svg%3E", sizes: "100x100", type: "image/svg+xml" }]
+    };
+    const blob = new Blob([JSON.stringify(manifest)], { type: "application/manifest+json" });
+    const link = document.createElement("link");
+    link.rel = "manifest"; link.href = URL.createObjectURL(blob);
+    document.head.appendChild(link);
+  } catch(e){ /* silencieux : le manifeste est une amélioration progressive */ }
+
+  // Service worker minimal (cache-first) enregistré depuis un Blob.
+  if ("serviceWorker" in navigator){
+    try {
+      const swCode = "const C='sprite-dex-v1';" +
+        "self.addEventListener('install',e=>self.skipWaiting());" +
+        "self.addEventListener('activate',e=>self.clients.claim());" +
+        "self.addEventListener('fetch',e=>{" +
+        "  e.respondWith(caches.open(C).then(cache=>cache.match(e.request).then(res=>{" +
+        "    const fetchPromise=fetch(e.request).then(netRes=>{cache.put(e.request,netRes.clone());return netRes;}).catch(()=>res);" +
+        "    return res||fetchPromise;" +
+        "  })));" +
+        "});";
+      const swBlob = new Blob([swCode], { type: "application/javascript" });
+      const swUrl = URL.createObjectURL(swBlob);
+      navigator.serviceWorker.register(swUrl).catch(() => {});
+    } catch(e){ /* pas de mode hors-ligne disponible dans cet environnement, l'app reste fonctionnelle en ligne */ }
+  }
+}
+
+function init(){
+  applyTheme();
+  applyTextSize();
+  applyReducedMotion();
+  applyCompactMode();
+  applyAccent();
+  const currentLevel = levelInfo(computeTotalXP()).level;
+  if (state.levelSeen < currentLevel){ state.levelSeen = currentLevel; persistLevelSeen(); }
+  renderShell();
+  renderPage(); // premier rendu : sert aussi de base silencieuse pour les succès déjà acquis
+  achvBaselineDone = true;
+  initPWA();
+}
+init();
+</script>
+</body>
+</html>
