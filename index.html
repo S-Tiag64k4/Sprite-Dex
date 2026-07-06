@@ -10,6 +10,14 @@
 <meta name="apple-mobile-web-app-title" content="Sprite Dex">
 <meta name="theme-color" content="#0B0D14">
 <meta name="description" content="Suivi de collection Sprite Dex — progression, statistiques, carte et succès.">
+<meta property="og:title" content="Sprite Dex — Tracker de collection Fortnite">
+<meta property="og:description" content="Suis ta progression sur les 61 Sprites de Fortnite : carte des zones, taux de drop, succès, niveau et plus.">
+<meta property="og:image" content="og-image.png">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Sprite Dex — Tracker de collection Fortnite">
+<meta name="twitter:description" content="Suis ta progression sur les 61 Sprites de Fortnite : carte des zones, taux de drop, succès, niveau et plus.">
+<meta name="twitter:image" content="og-image.png">
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%230B0D14'/%3E%3Ctext x='50' y='66' font-size='58' text-anchor='middle'%3E%E2%9C%A8%3C/text%3E%3C/svg%3E">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%230B0D14'/%3E%3Ctext x='50' y='66' font-size='58' text-anchor='middle'%3E%E2%9C%A8%3C/text%3E%3C/svg%3E">
 
@@ -394,6 +402,9 @@ input[type="file"]{ display:none; }
   <!-- Popup de déblocage de succès -->
   <div class="unlock-overlay" id="unlockOverlay"></div>
 
+  <!-- Écran de bienvenue (première ouverture uniquement) -->
+  <div class="unlock-overlay" id="onboardOverlay"></div>
+
   <!-- Notifications toast -->
   <div class="toast-stack" id="toastStack" aria-live="polite"></div>
 </div>
@@ -568,6 +579,8 @@ const KEY_HISTORY = "sprite-dex-history-v1";
 const KEY_ACHV_SEEN = "sprite-dex-achv-seen-v1";
 const KEY_CHECKLIST = "sprite-dex-checklist-v1";
 const KEY_LEVEL_SEEN = "sprite-dex-level-seen-v1";
+const KEY_ONBOARDED = "sprite-dex-onboarded-v1";
+const KEY_BACKUP_TRACK = "sprite-dex-backup-track-v1";
 
 function loadJSON(key, fallback){
   try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; }
@@ -586,6 +599,7 @@ const state = {
   achvSeen: loadJSON(KEY_ACHV_SEEN, []),     // ids de succès déjà vus/annoncés
   checklist: loadJSON(KEY_CHECKLIST, { dailyDate: "", dailyDone: {}, weekStart: "", weeklyDone: {} }),
   levelSeen: loadJSON(KEY_LEVEL_SEEN, 0),
+  backupTrack: loadJSON(KEY_BACKUP_TRACK, { count: 0, dismissedAt: 0 }),
   page: "home",
   search: "",
   sortBy: "name",
@@ -979,6 +993,22 @@ function renderHome(){
   html += '  <button class="btn btn-ghost btn-block" style="margin-top:8px;" onclick="goTo(\'stats\')">Voir toutes les statistiques</button>';
   html += '</div>';
 
+  if (shouldShowBackupReminder()){
+    html += '<div class="glass section-card" style="border-color:rgba(232,184,75,.35);background:rgba(232,184,75,.06);">';
+    html += '  <div style="display:flex;align-items:flex-start;gap:10px;">';
+    html += '    <div style="font-size:1.3rem;">\u{1f4be}</div>';
+    html += '    <div style="flex:1;">';
+    html += '      <div style="font-weight:700;font-size:.85rem;">Pense \u00e0 sauvegarder ta progression</div>';
+    html += '      <div style="font-size:.72rem;color:var(--text-2);margin-top:2px;">Ta collection n\u2019est stock\u00e9e que sur cet appareil. Exporte un fichier de secours pour ne rien perdre si tu changes de t\u00e9l\u00e9phone ou effaces les donn\u00e9es du navigateur.</div>';
+    html += '      <div style="display:flex;gap:8px;margin-top:10px;">';
+    html += '        <button class="btn btn-primary" style="padding:8px 14px;font-size:.78rem;" onclick="exportFromReminder()">Exporter maintenant</button>';
+    html += '        <button class="btn btn-ghost" style="padding:8px 14px;font-size:.78rem;" onclick="dismissBackupReminder()">Plus tard</button>';
+    html += '      </div>';
+    html += '    </div>';
+    html += '  </div>';
+    html += '</div>';
+  }
+
   const lvl = levelInfo(computeTotalXP());
   html += '<div class="glass section-card">';
   html += '  <div class="section-title">' + ICONS.trophy.replace('<svg ', '<svg class="ico" style="color:var(--c-gold);" ') + 'Niveau Chasseur</div>';
@@ -989,6 +1019,7 @@ function renderHome(){
   html += '  </div>';
   html += '  <div class="bar-row-track" style="height:9px;"><div class="bar-row-fill" style="width:' + lvl.pct + '%;background:var(--grad-aura);"></div></div>';
   html += '  <div style="font-size:.68rem;color:var(--text-2);margin-top:8px;">' + (lvl.next - lvl.into) + ' XP avant le niveau ' + (lvl.level+1) + ' \u00b7 XP total : ' + lvl.xp + '</div>';
+  html += '  <button class="btn btn-ghost btn-block" style="margin-top:14px;" onclick="shareProgress()">\u{1f4e4} Partager ma progression</button>';
   html += '</div>';
 
   html += renderChecklistSection();
@@ -1160,6 +1191,8 @@ function toggle(spriteId, variantKey){
     state.history.unshift({ key:k, ts: Date.now() });
     state.history = state.history.slice(0, 50);
     showToast("Sprite obtenu !", "\u2728");
+    state.backupTrack.count++;
+    saveJSON(KEY_BACKUP_TRACK, state.backupTrack);
   } else {
     state.history = state.history.filter(h => h.key !== k);
   }
@@ -1673,6 +1706,122 @@ function showUnlockPopup(achv){
 }
 function closeUnlockPopup(){ document.getElementById("unlockOverlay").classList.remove("show"); }
 
+/* ----- Écran de bienvenue (premier lancement) ----- */
+function maybeShowOnboarding(){
+  let seen = false;
+  try { seen = localStorage.getItem(KEY_ONBOARDED) === "1"; } catch(e) {}
+  if (seen) return;
+  const overlay = document.getElementById("onboardOverlay");
+  overlay.innerHTML =
+    '<div class="unlock-card" style="max-width:340px;text-align:left;">' +
+    '  <div class="unlock-eyebrow" style="text-align:center;">Bienvenue</div>' +
+    '  <div class="unlock-icon" style="text-align:center;">\u2728</div>' +
+    '  <div class="unlock-name" style="text-align:center;margin-bottom:14px;">Sprite Dex</div>' +
+    '  <div style="font-size:.82rem;color:var(--text-1);line-height:1.6;">' +
+    '    <div style="margin-bottom:10px;">\u{1f4e6} <strong>Collection</strong> \u2014 coche les Sprites et variantes que tu obtiens en jeu.</div>' +
+    '    <div style="margin-bottom:10px;">\u{1f5fa}\ufe0f <strong>Carte</strong> \u2014 les meilleures zones pour farmer chaque Sprite.</div>' +
+    '    <div style="margin-bottom:10px;">\u{1f3c6} <strong>Succ\u00e8s</strong> \u2014 27 objectifs \u00e0 d\u00e9bloquer, avec niveau et XP.</div>' +
+    '    <div style="margin-bottom:2px;">\u{1f4be} Ta progression est sauvegard\u00e9e sur cet appareil uniquement \u2014 pense \u00e0 exporter une sauvegarde dans Param\u00e8tres de temps en temps.</div>' +
+    '  </div>' +
+    '  <button class="btn btn-primary btn-block" style="margin-top:20px;" onclick="closeOnboarding()">C\u2019est parti !</button>' +
+    '</div>';
+  overlay.classList.add("show");
+}
+function closeOnboarding(){
+  document.getElementById("onboardOverlay").classList.remove("show");
+  try { localStorage.setItem(KEY_ONBOARDED, "1"); } catch(e) {}
+}
+
+/* ----- Rappel de sauvegarde manuelle ----- */
+const BACKUP_REMINDER_EVERY = 15;
+function shouldShowBackupReminder(){
+  return (state.backupTrack.count - state.backupTrack.dismissedAt) >= BACKUP_REMINDER_EVERY;
+}
+function dismissBackupReminder(){
+  state.backupTrack.dismissedAt = state.backupTrack.count;
+  saveJSON(KEY_BACKUP_TRACK, state.backupTrack);
+  renderPage();
+}
+function exportFromReminder(){
+  exportData();
+  dismissBackupReminder();
+}
+
+/* ----- Partage de la progression en image ----- */
+async function shareProgress(){
+  const done = countDone(), masteryDone = countMastery();
+  const pct = Math.round((done/TOTAL)*100);
+  const lvl = levelInfo(computeTotalXP());
+  const unlockedCount = ACHIEVEMENTS.filter(a => a.check(state.progress, done, masteryDone)).length;
+
+  const canvas = document.createElement("canvas");
+  canvas.width = 1080; canvas.height = 1080;
+  const ctx = canvas.getContext("2d");
+
+  // Fond d\u00e9grad\u00e9 sombre coh\u00e9rent avec l'app
+  const grad = ctx.createRadialGradient(300, 200, 50, 540, 540, 900);
+  grad.addColorStop(0, "#1C2436");
+  grad.addColorStop(0.5, "#12151F");
+  grad.addColorStop(1, "#0B0D14");
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 1080, 1080);
+
+  ctx.fillStyle = "#7C6AE8";
+  ctx.font = "600 34px sans-serif";
+  ctx.fillText("\u2728 SPRITE DEX", 80, 130);
+
+  ctx.fillStyle = "#EDEFF4";
+  ctx.font = "800 190px sans-serif";
+  ctx.fillText(pct + "%", 80, 380);
+
+  ctx.fillStyle = "#AEB4C4";
+  ctx.font = "500 40px sans-serif";
+  ctx.fillText(done + " / " + TOTAL + " collectibles", 80, 440);
+
+  // Cartes de stats
+  const stats = [
+    { label: "NIVEAU", value: String(lvl.level), color: "#7C6AE8" },
+    { label: "TITRE", value: lvl.title, color: "#E8B84B" },
+    { label: "MAITRISES", value: String(masteryDone), color: "#8FE0A0" },
+    { label: "SUCCES", value: unlockedCount + "/" + ACHIEVEMENTS.length, color: "#E85D9C" },
+  ];
+  let sy = 560;
+  stats.forEach(s => {
+    ctx.fillStyle = "rgba(255,255,255,0.045)";
+    ctx.fillRect(80, sy, 920, 110);
+    ctx.strokeStyle = "rgba(255,255,255,0.08)";
+    ctx.strokeRect(80, sy, 920, 110);
+    ctx.fillStyle = s.color;
+    ctx.font = "700 26px sans-serif";
+    ctx.fillText(s.label, 115, sy + 45);
+    ctx.fillStyle = "#EDEFF4";
+    ctx.font = "700 44px sans-serif";
+    ctx.fillText(s.value, 115, sy + 88);
+    sy += 130;
+  });
+
+  ctx.fillStyle = "#767E92";
+  ctx.font = "500 28px sans-serif";
+  ctx.fillText("Fais ta propre collection sur sprite-dex", 80, 1030);
+
+  canvas.toBlob(async (blob) => {
+    if (!blob) { showToast("Erreur de g\u00e9n\u00e9ration", "\u26a0\ufe0f"); return; }
+    const file = new File([blob], "sprite-dex-progression.png", { type: "image/png" });
+    if (navigator.canShare && navigator.canShare({ files: [file] })){
+      try {
+        await navigator.share({ files: [file], title: "Ma progression Sprite Dex", text: pct + "% de collection, niveau " + lvl.level + " !" });
+        return;
+      } catch(e) { /* partage annul\u00e9 par l'utilisateur, on retombe sur le t\u00e9l\u00e9chargement */ }
+    }
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "sprite-dex-progression.png";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+    showToast("Image enregistr\u00e9e", "\u{1f5bc}\ufe0f");
+  }, "image/png");
+}
+
 /* ----------------------------------------------------------------
    7. INITIALISATION + PWA (manifest dynamique + service worker)
    ---------------------------------------------------------------- */
@@ -1721,6 +1870,7 @@ function init(){
   renderPage(); // premier rendu : sert aussi de base silencieuse pour les succès déjà acquis
   achvBaselineDone = true;
   initPWA();
+  maybeShowOnboarding();
 }
 init();
 </script>
