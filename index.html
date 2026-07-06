@@ -439,14 +439,17 @@ const MAP_ZONES = [
 ];
 
 const NEWS = [
-  { date: "09/07/2026", title: "Sortie du variant Holofoil", desc: "Nouvelle variante au-dessus de Galaxy pour tous les Sprites. New Sprite Thursday.", tag: "\u00c0 venir", upcoming: true },
-  { date: "06/07/2026", title: "Mastery Monday", desc: "Spawn rates boost\u00e9s, 2x Sprite Dust et 2x XP toute la journ\u00e9e.", tag: "\u00c0 venir", upcoming: true },
-  { date: "04/07/2026", title: "Gold and Gummy Hours", desc: "2 sessions (14h et 21h ET) : taux Gold/Gummy boost\u00e9s, loadout Mythic Goldfish + Self-Revive offert, leveling plus rapide.", tag: "Aujourd'hui", upcoming: false },
-  { date: "02/07/2026", title: "Catch Up Day Legendary", desc: "24h de spawn x4 pour Dream, Punk et Boss, concentr\u00e9 autour de Shattered Coast.", tag: "Pass\u00e9", upcoming: false },
-  { date: "25/06/2026", title: "5 nouveaux Sprites", desc: "Ajout de Fishy, Aura, Striker, Boss et Grim, avec leurs 4 variantes d\u00e8s le lancement.", tag: "Pass\u00e9", upcoming: false },
-  { date: "18/06/2026", title: "Lancement du variant Galaxy", desc: "4e variante sp\u00e9ciale ajout\u00e9e \u00e0 tous les Sprites d'origine.", tag: "Pass\u00e9", upcoming: false },
-  { date: "13/06/2026", title: "Golden Hour", desc: "Premier \u00e9v\u00e9nement de boost de taux pour la variante Gold.", tag: "Pass\u00e9", upcoming: false },
-  { date: "06/06/2026", title: "Lancement Saison 3 Runners", desc: "Introduction des Sprites comme m\u00e9canique centrale de la saison (11 Sprites de base).", tag: "Pass\u00e9", upcoming: false },
+  { date: "16/07/2026", title: "Crossover DC Summer x Batman Sprite", desc: "Fuite (Nintendo eShop) : un Batman Sprite ferait son entr\u00e9e avec un event DC th\u00e9matique plage. Pouvoirs et raret\u00e9 encore inconnus, \u00e0 confirmer.", isRumor: true },
+  { date: "11/07/2026", title: "Holofoil Hours (probable)", desc: "Aucune confirmation officielle, mais chaque nouvelle variante a eu droit \u00e0 son event de taux boost\u00e9s le week-end suivant sa sortie." },
+  { date: "09/07/2026", title: "Sortie du variant Holofoil", desc: "Nouvelle variante au-dessus de Galaxy pour tous les Sprites. New Sprite Thursday." },
+  { date: "06/07/2026", title: "Mastery Monday", desc: "Spawn rates boost\u00e9s, 2x Sprite Dust et 2x XP, Portable Extractors suppl\u00e9mentaires. D\u00e9bute 9h ET." },
+  { date: "04/07/2026", title: "Gold and Gummy Hours", desc: "2 sessions (14h et 21h ET) : taux Gold/Gummy boost\u00e9s, loadout Mythic Goldfish + Self-Revive offert, leveling plus rapide." },
+  { date: "02/07/2026", title: "Catch Up Day Legendary", desc: "24h de spawn x4 pour Dream, Punk et Boss, concentr\u00e9 autour de Shattered Coast." },
+  { date: "01/07/2026", title: "Fin du concours Design a Sprite", desc: "Les joueurs pouvaient soumettre leur propre design de Sprite via #DesignASprite. Les gagnants int\u00e9greront le jeu plus tard dans la saison." },
+  { date: "25/06/2026", title: "5 nouveaux Sprites", desc: "Ajout de Fishy, Aura, Striker, Boss et Grim, avec leurs 4 variantes d\u00e8s le lancement." },
+  { date: "18/06/2026", title: "Lancement du variant Galaxy", desc: "4e variante sp\u00e9ciale ajout\u00e9e \u00e0 tous les Sprites d'origine." },
+  { date: "13/06/2026", title: "Golden Hour", desc: "Premier \u00e9v\u00e9nement de boost de taux pour la variante Gold." },
+  { date: "06/06/2026", title: "Lancement Saison 3 Runners", desc: "Introduction des Sprites comme m\u00e9canique centrale de la saison (11 Sprites de base)." },
 ];
 
 const SPRITES = [
@@ -473,7 +476,7 @@ const ACHIEVEMENTS = [
   { id: "galaxy1", icon: "\u{1f30c}", name: "Premier Galaxy", desc: "Obtiens ta premi\u00e8re variante Galaxy", check: (p) => Object.keys(p).some(k => k.endsWith(":galaxy") && !k.startsWith("mastery:") && p[k]) },
   { id: "water4", icon: "\u{1f4a7}", name: "Collection Eau compl\u00e8te", desc: "Obtiens les 4 variantes de Water", check: (p) => ["base","gold","gummy","galaxy"].every(v => p["water:" + v]) },
   { id: "mastery10", icon: "\u{1f3c5}", name: "10 Ma\u00eetrises", desc: "Ma\u00eetrise 10 variantes au total", check: (p, done, masteryDone) => masteryDone >= 10 },
-  { id: "boss1", icon: "\u{1f6e1}\ufe0f", name: "Chasseur de Boss", desc: "Obtiens le Sprite Boss", check: (p) => p["boss:base"] },
+  { id: "boss1", icon: "\u{1f6e1}\ufe0f", name: "Chasseur de Boss", desc: "Obtiens le Sprite Boss", check: (p) => ["base","gold","gummy","galaxy"].some(v => p["boss:"+v]) },
   { id: "allrarities", icon: "\u{1f396}\ufe0f", name: "Toutes les Raret\u00e9s", desc: "Obtiens au moins un Sprite de chaque raret\u00e9", check: (p) => RARITY_ORDER.every(r => SPRITES.some(s => s.rarity === r && s.variants.some(v => p[s.id + ":" + v]))) },
   { id: "grim1", icon: "\u{1f480}", name: "Contre Toute Attente", desc: "Obtiens le Grim Reaper (0.000098%)", check: (p) => ["base","gold","gummy","galaxy"].some(v => p["grim:" + v]) },
   { id: "legendary4", icon: "\u2694\ufe0f", name: "Sang L\u00e9gendaire", desc: "Obtiens les 4 Sprites Legendary (Normal)", check: (p) => ["dream","punk","boss","grim"].every(id => p[id + ":base"]) },
@@ -485,8 +488,8 @@ const ACHIEVEMENTS = [
   { id: "goldrush", icon: "\u{1fa99}", name: "Gold Rush", desc: "Obtiens 5 variantes Gold", check: (p) => Object.keys(p).filter(k=>k.endsWith(":gold") && !k.startsWith("mastery:") && p[k]).length >= 5 },
   { id: "gummyfan", icon: "\u{1f36c}", name: "Fan de Gummy", desc: "Obtiens 5 variantes Gummy", check: (p) => Object.keys(p).filter(k=>k.endsWith(":gummy") && !k.startsWith("mastery:") && p[k]).length >= 5 },
   { id: "halfway", icon: "\u{1f317}", name: "Mi-Chemin", desc: "Atteins 50% de la collection (31/61)", check: (p, done) => done >= 31 },
-  { id: "goal", icon: "\u26bd", name: "But !", desc: "Obtiens le Sprite Striker", check: (p) => p["striker:base"] },
-  { id: "nightowl", icon: "\u{1f319}", name: "Oiseau de Nuit", desc: "Obtiens le Sprite Ghost", check: (p) => p["ghost:base"] },
+  { id: "goal", icon: "\u26bd", name: "But !", desc: "Obtiens le Sprite Striker", check: (p) => ["base","gold","gummy","galaxy"].some(v => p["striker:"+v]) },
+  { id: "nightowl", icon: "\u{1f319}", name: "Oiseau de Nuit", desc: "Obtiens le Sprite Ghost", check: (p) => ["base","gold","gummy","galaxy"].some(v => p["ghost:"+v]) },
   { id: "mythicduo", icon: "\u2728", name: "Duo Mythique", desc: "Obtiens Zero Point et Burnt Peanut (Normal)", check: (p) => p["zeropoint:base"] && p["burntpeanut:base"] },
   { id: "galaxyall", icon: "\u{1f30c}", name: "Ciel Constell\u00e9", desc: "Obtiens la variante Galaxy de tous les Sprites \u00e9ligibles", check: (p) => SPRITES.filter(s => s.variants.includes("galaxy")).every(s => p[s.id+":galaxy"]) },
   { id: "epicfull", icon: "\u{1f537}", name: "Collection Epic compl\u00e8te", desc: "Obtiens les 4 variantes des 6 Sprites Epic", check: (p) => SPRITES.filter(s=>s.rarity==="Epic").every(s => s.variants.every(v => p[s.id+":"+v])) },
@@ -494,8 +497,8 @@ const ACHIEVEMENTS = [
   { id: "mastery20", icon: "\u{1f393}", name: "Expert Confirm\u00e9", desc: "Ma\u00eetrise 20 variantes au total", check: (p, done, masteryDone) => masteryDone >= 20 },
   { id: "perfect", icon: "\u{1f48e}", name: "Perfection Totale", desc: "Obtiens ET ma\u00eetrise les 61 collectibles", check: (p, done, masteryDone) => done >= 61 && masteryDone >= 61 },
   { id: "duckfull", icon: "\u{1f986}", name: "Canard Complet", desc: "Obtiens les 4 variantes de Duck", check: (p) => ["base","gold","gummy","galaxy"].every(v => p["duck:"+v]) },
-  { id: "zeromaster", icon: "\u{1f573}\ufe0f", name: "Ma\u00eetre du Vide", desc: "Ma\u00eetrise une variante de Zero Point", check: (p) => ["base","gold","gummy","galaxy"].some(v => p["mastery:zeropoint:"+v]) },
-  { id: "ghostmaster", icon: "\u{1f576}\ufe0f", name: "Sans un Bruit", desc: "Ma\u00eetrise une variante de Ghost", check: (p) => ["base","gold","gummy","galaxy"].some(v => p["mastery:ghost:"+v]) },
+  { id: "zeromaster", icon: "\u{1f573}\ufe0f", name: "Ma\u00eetre du Vide", desc: "Obtiens PUIS ma\u00eetrise une variante de Zero Point (bouton \u2b50 dans sa fiche)", check: (p) => ["base","gold","gummy","galaxy"].some(v => p["mastery:zeropoint:"+v]) },
+  { id: "ghostmaster", icon: "\u{1f576}\ufe0f", name: "Sans un Bruit", desc: "Obtiens PUIS ma\u00eetrise une variante de Ghost (bouton \u2b50 dans sa fiche)", check: (p) => ["base","gold","gummy","galaxy"].some(v => p["mastery:ghost:"+v]) },
 ];
 
 const TOTAL = SPRITES.reduce((s, sp) => s + sp.variants.length, 0); // 61
@@ -1334,16 +1337,38 @@ function attachMapGestures(){
 /* ----------------------------------------------------------------
    6d. PAGE NEWS
    ---------------------------------------------------------------- */
+/* ----- Statut des News calcul\u00e9 depuis l'horloge de l'appareil -----
+   Contrairement au contenu (titres/dates des events, qui doivent \u00eatre ajout\u00e9s
+   \u00e0 la main d\u00e8s qu'Epic annonce du nouveau), l'\u00e9tiquette Pass\u00e9/Aujourd'hui/\u00e0 venir
+   se recalcule toute seule \u00e0 chaque ouverture, en comparant la date de l'event
+   \u00e0 la date actuelle du t\u00e9l\u00e9phone. Reste juste 100% fiable dans le temps sans
+   avoir besoin qu'on la remette \u00e0 jour manuellement. */
+function newsDateStatus(dateStr){
+  const [d, m, y] = dateStr.split("/").map(Number);
+  const eventDate = new Date(y, m-1, d);
+  const today = new Date();
+  const todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const diffDays = Math.round((eventDate - todayMidnight) / 86400000);
+  if (diffDays === 0) return { label: "Aujourd'hui", state: "today" };
+  if (diffDays < 0) return { label: "Pass\u00e9", state: "past" };
+  if (diffDays === 1) return { label: "Demain", state: "future" };
+  return { label: "Dans " + diffDays + " j", state: "future" };
+}
+
 function renderNews(){
-  return NEWS.map((n,i) =>
-    '<div class="news-item ' + (n.upcoming?"upcoming":"") + '" style="animation-delay:' + (i*0.05) + 's">' +
+  return NEWS.map((n,i) => {
+    const status = newsDateStatus(n.date);
+    const badgeStyle = status.state === "future" ? "background:rgba(124,106,232,.18);color:var(--c-purple);"
+                      : status.state === "today" ? "background:rgba(232,184,75,.18);color:var(--c-gold);"
+                      : "background:rgba(255,255,255,.06);color:var(--text-2);";
+    return '<div class="news-item ' + (status.state === "future" ? "upcoming" : "") + '" style="animation-delay:' + (i*0.05) + 's">' +
     '  <div class="news-card glass">' +
     '    <div class="news-top"><span class="news-date">' + n.date + '</span>' +
-    '      <span class="news-badge" style="' + (n.upcoming ? "background:rgba(124,106,232,.18);color:var(--c-purple);" : n.tag==="Aujourd'hui" ? "background:rgba(232,184,75,.18);color:var(--c-gold);" : "background:rgba(255,255,255,.06);color:var(--text-2);") + '">' + n.tag + '</span></div>' +
+    '      <span class="news-badge" style="' + badgeStyle + '">' + status.label + (n.isRumor ? " \u00b7 Rumeur" : "") + '</span></div>' +
     '    <div class="news-title">' + n.title + '</div>' +
     '    <div class="news-desc">' + n.desc + '</div>' +
-    '  </div></div>'
-  ).join("");
+    '  </div></div>';
+  }).join("");
 }
 
 /* ----------------------------------------------------------------
