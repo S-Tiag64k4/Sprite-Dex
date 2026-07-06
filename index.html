@@ -678,6 +678,25 @@ function estimateCaptureTime(sprite, variantKey){
   const expectedMinutes = expectedMatches * MATCH_MINUTES;
   return fmtDuration(expectedMinutes);
 }
+
+/* ----- Estimation du % de joueurs qui possèdent un Sprite -----
+   Aucune vraie donnée n'existe (Epic ne publie pas ce genre de stat, contrairement
+   aux trophées PlayStation par exemple). C'est un calcul de probabilité :
+   si un joueur actif ouvre en moyenne SEASON_CHESTS Coffres Sprite sur toute la
+   saison (hypoth\u00e8se raisonnable pour quelqu'un qui joue r\u00e9guli\u00e8rement sans
+   farm intensif), la probabilit\u00e9 qu'il ait crois\u00e9 au moins une fois ce Sprite
+   (version Normal, la plus courante) se calcule avec 1 - (1 - p)^n. */
+const SEASON_CHESTS = 150;
+function estimatePlayerPercent(sprite){
+  const pct = getRateNumeric(sprite, "base");
+  if (pct === null || pct <= 0) return null;
+  const p = pct / 100;
+  const probability = 1 - Math.pow(1 - p, SEASON_CHESTS);
+  const asPct = probability * 100;
+  if (asPct >= 99.5) return "> 99%";
+  if (asPct < 1) return "< 1%";
+  return Math.round(asPct) + "%";
+}
 function countDone(){ return Object.entries(state.progress).filter(([k,v]) => v && !k.startsWith("mastery:")).length; }
 function countMastery(){ return Object.entries(state.progress).filter(([k,v]) => v && k.startsWith("mastery:")).length; }
 function spriteDoneCount(sprite){ return sprite.variants.filter(v => state.progress[sprite.id+":"+v]).length; }
@@ -1045,6 +1064,7 @@ function renderSpriteListHTML(){
       '  <div class="sc-top"><span class="sc-name">' + s.name + '</span>' +
       '  <span class="rarity-pill" style="color:' + RARITY_COLORS[s.rarity] + ';border:1px solid ' + RARITY_COLORS[s.rarity] + '55;">' + s.rarity + '</span></div>' +
       '  <div class="sc-note">' + s.note + '</div>' +
+      '  <div class="sc-note" style="color:var(--text-2);font-style:italic;">\u{1f465} ~' + estimatePlayerPercent(s) + ' des joueurs l\u2019ont (estimation)</div>' +
       '  <div class="sc-bar-bg"><div class="sc-bar-fill" style="width:' + pct + '%;background:var(--grad-aura);"></div></div>' +
       '</div>' +
       '<div class="sc-count ' + (spriteDone===spriteTotal?"full":"") + '">' + spriteDone + '/' + spriteTotal + '</div>' +
@@ -1520,6 +1540,7 @@ function renderSettings(){
   html += '  <div class="section-title">\u2139\ufe0f \u00c0 propos des taux</div>';
   html += '  <div class="about-note">Taux "Base" issus d\'une table d\u00e9taill\u00e9e communautaire (AccountShark, maj 02/07/2026) \u2014 non officiels, Epic ne publie pas ces chiffres. Taux Gold/Gummy/Galaxy calcul\u00e9s avec un ratio observ\u00e9 sur Aura/Striker (Base\u2192Gold \u00f782, \u2192Gummy \u00f7143, \u2192Galaxy \u00f7287) puis extrapol\u00e9s aux autres Sprites.</div>';
   html += '  <div class="about-note">Temps de capture estim\u00e9 (\u23f1\ufe0f dans la fiche de chaque Sprite) = calcul th\u00e9orique en supposant ' + CHESTS_PER_MATCH + ' Coffres Sprite ouverts par partie sur ~' + MATCH_MINUTES + ' min de farm (zone dense type Sinister Strip). C\'est une moyenne statistique, pas une garantie : tu peux l\'obtenir bien plus vite... ou bien plus lentement.</div>';
+  html += '  <div class="about-note">\u{1f465} % de joueurs qui l\'ont (dans la Collection) = m\u00eame logique, mais en supposant ' + SEASON_CHESTS + ' Coffres Sprite ouverts par un joueur actif sur toute la saison. Epic ne publie aucune vraie statistique l\u00e0-dessus \u2014 c\'est un calcul de probabilit\u00e9, pas une donn\u00e9e r\u00e9elle.</div>';
   html += '  <div class="about-note">Sprite Dex \u00b7 application non officielle, non affili\u00e9e \u00e0 Epic Games.</div>';
   html += '</div>';
 
