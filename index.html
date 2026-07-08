@@ -450,13 +450,14 @@ const MAP_ZONES = [
 ];
 
 const NEWS = [
-  { date: "16/07/2026", title: "Crossover DC Summer x Batman Sprite", desc: "Fuite (Nintendo eShop) : un Batman Sprite ferait son entr\u00e9e avec un event DC th\u00e9matique plage. Pouvoirs et raret\u00e9 encore inconnus, \u00e0 confirmer.", isRumor: true },
-  { date: "11/07/2026", title: "Holofoil Hours (probable)", desc: "Aucune confirmation officielle, mais chaque nouvelle variante a eu droit \u00e0 son event de taux boost\u00e9s le week-end suivant sa sortie." },
-  { date: "09/07/2026", title: "Sortie du variant Holofoil", desc: "Nouvelle variante au-dessus de Galaxy pour tous les Sprites. New Sprite Thursday." },
+  { date: "20/07/2026", title: "Gem Sprites (attendus)", desc: "Selon des sources sp\u00e9cialis\u00e9es, une nouvelle vague de Sprites serait pr\u00e9vue la semaine suivant les Holofoil, avant la fin progressive de la m\u00e9canique en fin de saison. Non confirm\u00e9 par Epic.", isRumor: true },
+  { date: "11/07/2026", title: "Holofoil Hours", desc: "Confirm\u00e9 par Epic : 2 sessions (14h et 21h ET), taux d'apparition des Sprites Holofoil largement boost\u00e9s.", },
+  { date: "09/07/2026", title: "Sortie des Sprites Holofoil", desc: "Confirm\u00e9 officiellement par Epic (tweet du 5/07) : 15 variantes Holofoil, disponibles ~9h ET. Chaque Holofoil donne +5% de chance pour toute la squad de trouver des variantes rares (Gold/Gummy/Galaxy) dans les coffres.", },
+  { date: "09/07/2026", title: "Batman Sprite (rumeur persistante)", desc: "Attendu avec la m\u00eame mise \u00e0 jour que les Holofoil suite \u00e0 une activation accidentelle rep\u00e9r\u00e9e chez certains joueurs, corrig\u00e9e depuis par Epic. Toujours pas de confirmation officielle du contenu.", isRumor: true },
   { date: "06/07/2026", title: "Mastery Monday", desc: "Spawn rates boost\u00e9s, 2x Sprite Dust et 2x XP, Portable Extractors suppl\u00e9mentaires. D\u00e9bute 9h ET." },
   { date: "04/07/2026", title: "Gold and Gummy Hours", desc: "2 sessions (14h et 21h ET) : taux Gold/Gummy boost\u00e9s, loadout Mythic Goldfish + Self-Revive offert, leveling plus rapide." },
   { date: "02/07/2026", title: "Catch Up Day Legendary", desc: "24h de spawn x4 pour Dream, Punk et Boss, concentr\u00e9 autour de Shattered Coast." },
-  { date: "01/07/2026", title: "Fin du concours Design a Sprite", desc: "Les joueurs pouvaient soumettre leur propre design de Sprite via #DesignASprite. Les gagnants int\u00e9greront le jeu plus tard dans la saison." },
+  { date: "01/07/2026", title: "Fin du concours Design a Sprite", desc: "Les joueurs pouvaient soumettre leur propre design de Sprite via #DesignASprite. Le(s) gagnant(s) sera(ont) r\u00e9v\u00e9l\u00e9(s) prochainement, une fois la pause estivale d'Epic termin\u00e9e." },
   { date: "25/06/2026", title: "5 nouveaux Sprites", desc: "Ajout de Fishy, Aura, Striker, Boss et Grim, avec leurs 4 variantes d\u00e8s le lancement." },
   { date: "18/06/2026", title: "Lancement du variant Galaxy", desc: "4e variante sp\u00e9ciale ajout\u00e9e \u00e0 tous les Sprites d'origine." },
   { date: "13/06/2026", title: "Golden Hour", desc: "Premier \u00e9v\u00e9nement de boost de taux pour la variante Gold." },
@@ -656,6 +657,7 @@ function variantRateLabel(sprite, variantKey) {
    Calcul : esp\u00e9rance du nombre d'essais pour un premier succ\u00e8s = 1 / p (loi g\u00e9om\u00e9trique),
    converti en parties puis en dur\u00e9e. C'est une moyenne th\u00e9orique, pas une garantie :
    la vraie dur\u00e9e peut varier \u00e9norm\u00e9ment d'une tentative \u00e0 l'autre. */
+const TIKTOK_URL = "https://www.tiktok.com/@spritedexapp64";
 const CHESTS_PER_MATCH = 3;
 const MATCH_MINUTES = 12;
 
@@ -1047,6 +1049,8 @@ function renderHome(){
   }
   html += '  <button class="btn btn-ghost btn-block" style="margin-top:12px;" onclick="goTo(\'achievements\')">Voir tous les succ\u00e8s (' + unlocked.length + '/' + ACHIEVEMENTS.length + ')</button>';
   html += '</div>';
+
+  html += '<div style="text-align:center;font-size:.72rem;color:var(--text-2);margin:18px 0 6px;">Sprite Dex est fait maison \u2014 <a href="' + TIKTOK_URL + '" target="_blank" style="color:var(--c-purple);font-weight:700;">suis @spritedexapp64 sur TikTok</a></div>';
 
   return html;
 }
@@ -1567,6 +1571,14 @@ function renderSettings(){
   html += '  <div class="setting-row"><div><div class="setting-label">Importer une sauvegarde</div><div class="setting-sub">Restaure depuis un fichier .json</div></div><button class="btn btn-ghost" onclick="document.getElementById(\'importInput\').click()">Importer</button></div>';
   html += '  <input type="file" id="importInput" accept="application/json" onchange="importData(event)">';
   html += '  <div class="setting-row"><div><div class="setting-label" style="color:var(--r-mythic);">R\u00e9initialiser</div><div class="setting-sub">Efface toute la progression</div></div><button class="btn btn-ghost" style="border-color:var(--r-mythic);color:var(--r-mythic);" onclick="resetAll()">R\u00e9initialiser</button></div>';
+  html += '</div>';
+
+  html += '<div class="glass section-card">';
+  html += '  <div class="section-title">\u{1f4f1} Communaut\u00e9</div>';
+  html += '  <div class="setting-row"><div><div class="setting-label">Suivre le d\u00e9veloppement</div><div class="setting-sub">Nouveaut\u00e9s, coulisses et mises \u00e0 jour de l\u2019app</div></div>' +
+          '    <button class="btn btn-ghost" onclick="window.open(\'' + TIKTOK_URL + '\', \'_blank\')">@spritedexapp64</button></div>';
+  html += '  <div class="setting-row"><div><div class="setting-label">Signaler un bug / donner un avis</div><div class="setting-sub">Envoie-nous un message directement sur TikTok</div></div>' +
+          '    <button class="btn btn-ghost" onclick="window.open(\'' + TIKTOK_URL + '\', \'_blank\')">Contacter</button></div>';
   html += '</div>';
 
   html += '<div class="glass section-card">';
