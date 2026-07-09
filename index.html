@@ -658,6 +658,13 @@ function variantRateLabel(sprite, variantKey) {
    converti en parties puis en dur\u00e9e. C'est une moyenne th\u00e9orique, pas une garantie :
    la vraie dur\u00e9e peut varier \u00e9norm\u00e9ment d'une tentative \u00e0 l'autre. */
 const TIKTOK_URL = "https://www.tiktok.com/@spritedexapp64";
+const YOUTUBE_URL = "https://youtube.com/@spritedexapp";
+// Compteur public via CounterAPI (aucune inscription requise, aucune donn\u00e9e personnelle
+// envoy\u00e9e \u2014 juste un +1 anonyme). Incr\u00e9ment\u00e9 une seule fois par appareil, au tout
+// premier lancement, pour approximer le nombre de personnes diff\u00e9rentes ayant essay\u00e9
+// l'app (plut\u00f4t que de compter chaque r\u00e9ouverture, ce qui gonflerait artificiellement le chiffre).
+const COUNTER_NAMESPACE = "spritedexapp64k4";
+const COUNTER_NAME = "users";
 const CHESTS_PER_MATCH = 3;
 const MATCH_MINUTES = 12;
 
@@ -900,6 +907,7 @@ function renderPage(navDirection){
   c.innerHTML = '<div class="' + animClass + '">' + html + '</div>';
   // Actions post-rendu spécifiques à certaines pages
   if (state.page === "map") { attachMapGestures(); renderMapPins(); }
+  if (state.page === "home") { renderUserCountBadge(); }
   checkAchievements();
 }
 
@@ -975,6 +983,7 @@ function renderHome(){
   }).filter(Boolean);
 
   let html = '';
+  html += '<div id="userCountBadge" style="text-align:center;font-size:.75rem;font-weight:700;color:var(--c-purple);margin-bottom:10px;display:none;"></div>';
   html += '<div class="glass section-card">';
   html += '  <div class="ring-wrap">';
   html += '    <div style="font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-2);margin-bottom:2px;">Progression globale</div>';
@@ -1577,6 +1586,8 @@ function renderSettings(){
   html += '  <div class="section-title">\u{1f4f1} Communaut\u00e9</div>';
   html += '  <div class="setting-row"><div><div class="setting-label">Suivre le d\u00e9veloppement</div><div class="setting-sub">Nouveaut\u00e9s, coulisses et mises \u00e0 jour de l\u2019app</div></div>' +
           '    <button class="btn btn-ghost" onclick="window.open(\'' + TIKTOK_URL + '\', \'_blank\')">@spritedexapp64</button></div>';
+  html += '  <div class="setting-row"><div><div class="setting-label">Cha\u00eene YouTube</div><div class="setting-sub">Vid\u00e9os et tutos de l\u2019app</div></div>' +
+          '    <button class="btn btn-ghost" onclick="window.open(\'' + YOUTUBE_URL + '\', \'_blank\')">@spritedexapp</button></div>';
   html += '  <div class="setting-row"><div><div class="setting-label">Signaler un bug / donner un avis</div><div class="setting-sub">Envoie-nous un message directement sur TikTok</div></div>' +
           '    <button class="btn btn-ghost" onclick="window.open(\'' + TIKTOK_URL + '\', \'_blank\')">Contacter</button></div>';
   html += '</div>';
@@ -1586,6 +1597,7 @@ function renderSettings(){
   html += '  <div class="about-note">Taux "Base" issus d\'une table d\u00e9taill\u00e9e communautaire (AccountShark, maj 02/07/2026) \u2014 non officiels, Epic ne publie pas ces chiffres. Taux Gold/Gummy/Galaxy calcul\u00e9s avec un ratio observ\u00e9 sur Aura/Striker (Base\u2192Gold \u00f782, \u2192Gummy \u00f7143, \u2192Galaxy \u00f7287) puis extrapol\u00e9s aux autres Sprites.</div>';
   html += '  <div class="about-note">Temps de capture estim\u00e9 (\u23f1\ufe0f dans la fiche de chaque Sprite) = calcul th\u00e9orique en supposant ' + CHESTS_PER_MATCH + ' Coffres Sprite ouverts par partie sur ~' + MATCH_MINUTES + ' min de farm (zone dense type Sinister Strip). C\'est une moyenne statistique, pas une garantie : tu peux l\'obtenir bien plus vite... ou bien plus lentement.</div>';
   html += '  <div class="about-note">\u{1f465} % de joueurs qui l\'ont (dans la Collection) = m\u00eame logique, mais en supposant ' + SEASON_CHESTS + ' Coffres Sprite ouverts par un joueur actif sur toute la saison. Epic ne publie aucune vraie statistique l\u00e0-dessus \u2014 c\'est un calcul de probabilit\u00e9, pas une donn\u00e9e r\u00e9elle.</div>';
+  html += '  <div class="about-note">\u{1f3ae} Le compteur "joueurs" sur l\'accueil s\'incr\u00e9mente automatiquement une fois par appareil, au tout premier lancement, via un service externe gratuit (CounterAPI). Aucune donn\u00e9e personnelle n\'est envoy\u00e9e \u2014 juste un +1 anonyme.</div>';
   html += '  <div class="about-note">Sprite Dex \u00b7 application non officielle, non affili\u00e9e \u00e0 Epic Games.</div>';
   html += '</div>';
 
@@ -1719,10 +1731,41 @@ function showUnlockPopup(achv){
 function closeUnlockPopup(){ document.getElementById("unlockOverlay").classList.remove("show"); }
 
 /* ----- Écran de bienvenue (premier lancement) ----- */
+function incrementUserCounter(){
+  try {
+    fetch("https://api.counterapi.dev/v1/" + COUNTER_NAMESPACE + "/" + COUNTER_NAME + "/up").catch(() => {});
+  } catch(e) { /* pas de r\u00e9seau ou service indisponible, on ignore silencieusement */ }
+}
+async function fetchUserCount(){
+  try {
+    const res = await fetch("https://api.counterapi.dev/v1/" + COUNTER_NAMESPACE + "/" + COUNTER_NAME + "/");
+    if (res.status === 400) return 0; // compteur pas encore cr\u00e9\u00e9 : personne ne l'a encore incr\u00e9ment\u00e9, donc 0
+    if (!res.ok) return null;
+    const data = await res.json();
+    return typeof data.count === "number" ? data.count : null;
+  } catch(e) { return null; }
+}
+function renderUserCountBadge(){
+  const el = document.getElementById("userCountBadge");
+  if (!el) return;
+  fetchUserCount().then(count => {
+    const el2 = document.getElementById("userCountBadge");
+    if (!el2) return; // la page a chang\u00e9 entre-temps
+    if (count === null){ el2.style.display = "none"; return; } // service injoignable : on ne peut rien affirmer
+    el2.style.display = "block";
+    if (count < 1){
+      el2.textContent = "\u2728 Sois l\u2019un des premiers \u00e0 essayer Sprite Dex !";
+    } else {
+      el2.textContent = "\u{1f3ae} " + count.toLocaleString("fr-FR") + " joueur" + (count>1?"s":"") + (count>1?" utilisent":" utilise") + " d\u00e9j\u00e0 Sprite Dex";
+    }
+  });
+}
+
 function maybeShowOnboarding(){
   let seen = false;
   try { seen = localStorage.getItem(KEY_ONBOARDED) === "1"; } catch(e) {}
   if (seen) return;
+  incrementUserCounter();
   const overlay = document.getElementById("onboardOverlay");
   overlay.innerHTML =
     '<div class="unlock-card" style="max-width:340px;text-align:left;">' +
