@@ -11,12 +11,12 @@
 <meta name="theme-color" content="#0B0D14">
 <meta name="description" content="Suivi de collection Sprite Dex — progression, statistiques, carte et succès.">
 <meta property="og:title" content="Sprite Dex — Tracker de collection Fortnite">
-<meta property="og:description" content="Suis ta progression sur les 61 Sprites de Fortnite : carte des zones, taux de drop, succès, niveau et plus.">
+<meta property="og:description" content="Suis ta progression sur les 66 collectibles de Fortnite : carte des zones, taux de drop, succès, niveau et plus.">
 <meta property="og:image" content="og-image.png">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Sprite Dex — Tracker de collection Fortnite">
-<meta name="twitter:description" content="Suis ta progression sur les 61 Sprites de Fortnite : carte des zones, taux de drop, succès, niveau et plus.">
+<meta name="twitter:description" content="Suis ta progression sur les 66 collectibles de Fortnite : carte des zones, taux de drop, succès, niveau et plus.">
 <meta name="twitter:image" content="og-image.png">
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%230B0D14'/%3E%3Ctext x='50' y='66' font-size='58' text-anchor='middle'%3E%E2%9C%A8%3C/text%3E%3C/svg%3E">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%230B0D14'/%3E%3Ctext x='50' y='66' font-size='58' text-anchor='middle'%3E%E2%9C%A8%3C/text%3E%3C/svg%3E">
@@ -431,6 +431,7 @@ const VARIANTS = [
   { key: "gold",  label: "Gold",   color: "#E8B84B", glow: "rgba(232,184,75,0.28)" },
   { key: "gummy", label: "Gummy",  color: "#E85D9C", glow: "rgba(232,93,156,0.28)" },
   { key: "galaxy",label: "Galaxy", color: "#7C6AE8", glow: "rgba(124,106,232,0.3)" },
+  { key: "holofoil", label: "Holofoil", color: "#5DEAD4", glow: "rgba(93,234,212,0.32)" },
 ];
 const RARITY_COLORS = { Rare: "#5DA9E8", Epic: "#B36AE8", Legendary: "#E8A23A", Mythic: "#E85D5D" };
 const RARITY_ORDER = ["Rare", "Epic", "Legendary", "Mythic"];
@@ -452,7 +453,7 @@ const MAP_ZONES = [
 const NEWS = [
   { date: "20/07/2026", title: "Gem Sprites (attendus)", desc: "Selon des sources sp\u00e9cialis\u00e9es, une nouvelle vague de Sprites serait pr\u00e9vue la semaine suivant les Holofoil, avant la fin progressive de la m\u00e9canique en fin de saison. Non confirm\u00e9 par Epic.", isRumor: true },
   { date: "11/07/2026", title: "Holofoil Hours", desc: "Confirm\u00e9 par Epic : 2 sessions (14h et 21h ET), taux d'apparition des Sprites Holofoil largement boost\u00e9s.", },
-  { date: "09/07/2026", title: "Sortie des Sprites Holofoil", desc: "Confirm\u00e9 officiellement par Epic (tweet du 5/07) : 15 variantes Holofoil, disponibles ~9h ET. Chaque Holofoil donne +5% de chance pour toute la squad de trouver des variantes rares (Gold/Gummy/Galaxy) dans les coffres.", },
+  { date: "09/07/2026", title: "Sortie des Sprites Holofoil", desc: "Officiellement sorti ! 5 Sprites confirm\u00e9s pour l'instant : Water, Fire, Ghost, King et Striker (Epic en ajoutera d'autres progressivement). Chaque Holofoil donne +5% de chance pour toute la squad de trouver des variantes rares (Gold/Gummy/Galaxy) dans les coffres. M\u00eame lieu de drop que la version Normal, mais bien plus rare.", },
   { date: "09/07/2026", title: "Batman Sprite (rumeur persistante)", desc: "Attendu avec la m\u00eame mise \u00e0 jour que les Holofoil suite \u00e0 une activation accidentelle rep\u00e9r\u00e9e chez certains joueurs, corrig\u00e9e depuis par Epic. Toujours pas de confirmation officielle du contenu.", isRumor: true },
   { date: "06/07/2026", title: "Mastery Monday", desc: "Spawn rates boost\u00e9s, 2x Sprite Dust et 2x XP, Portable Extractors suppl\u00e9mentaires. D\u00e9bute 9h ET." },
   { date: "04/07/2026", title: "Gold and Gummy Hours", desc: "2 sessions (14h et 21h ET) : taux Gold/Gummy boost\u00e9s, loadout Mythic Goldfish + Self-Revive offert, leveling plus rapide." },
@@ -465,16 +466,16 @@ const NEWS = [
 ];
 
 const SPRITES = [
-  { id: "water", name: "Water", emoji: "\u{1f4a7}", rarity: "Rare", drop: "13.92%", added: "06/06/2026", note: "R\u00e9g\u00e9n\u00e8re le bouclier (vous + squad) dans l'eau", variants: ["base","gold","gummy","galaxy"], tip: "[ZONE CONSEILL\u00c9E] Sinister Strip \u2014 la zone avec le plus de Coffres Sprite de toute la carte (4).", zone: "sinisterstrip" },
+  { id: "water", name: "Water", emoji: "\u{1f4a7}", rarity: "Rare", drop: "13.92%", added: "06/06/2026", note: "R\u00e9g\u00e9n\u00e8re le bouclier (vous + squad) dans l'eau", variants: ["base","gold","gummy","galaxy","holofoil"], tip: "[ZONE CONSEILL\u00c9E] Sinister Strip \u2014 la zone avec le plus de Coffres Sprite de toute la carte (4).", zone: "sinisterstrip" },
   { id: "earth", name: "Earth", emoji: "\u{1f331}", rarity: "Rare", drop: "13.92%", added: "06/06/2026", note: "Chance d'objets rares en plus dans les coffres", variants: ["base","gold","gummy","galaxy"], tip: "[ZONE CONSEILL\u00c9E] Sinister Strip \u2014 la zone avec le plus de Coffres Sprite de toute la carte (4).", zone: "sinisterstrip" },
-  { id: "fire", name: "Fire", emoji: "\u{1f525}", rarity: "Rare", drop: "13.92%", added: "06/06/2026", note: "Explosion enflamm\u00e9e sur d\u00e9g\u00e2ts suffisants", variants: ["base","gold","gummy","galaxy"], tip: "[ZONE CONSEILL\u00c9E] Sinister Strip \u2014 la zone avec le plus de Coffres Sprite de toute la carte (4).", zone: "sinisterstrip" },
+  { id: "fire", name: "Fire", emoji: "\u{1f525}", rarity: "Rare", drop: "13.92%", added: "06/06/2026", note: "Explosion enflamm\u00e9e sur d\u00e9g\u00e2ts suffisants", variants: ["base","gold","gummy","galaxy","holofoil"], tip: "[ZONE CONSEILL\u00c9E] Sinister Strip \u2014 la zone avec le plus de Coffres Sprite de toute la carte (4).", zone: "sinisterstrip" },
   { id: "fishy", name: "Fishy", emoji: "\u{1f41f}", rarity: "Rare", drop: "13.79%", added: "25/06/2026", note: "Vitesse de nage + boost de vitesse quand touch\u00e9", variants: ["base","gold","gummy","galaxy"], tip: "[ZONE CONSEILL\u00c9E] Sinister Strip \u2014 la meilleure zone toutes cat\u00e9gories (4 Coffres Sprite).", zone: "sinisterstrip" },
   { id: "duck", name: "Duck", emoji: "\u{1f986}", rarity: "Epic", drop: "5.22%", added: "06/06/2026", note: "Emote/Jam r\u00e9g\u00e9n\u00e8re le bouclier", variants: ["base","gold","gummy","galaxy"], tip: "[ZONE CONSEILL\u00c9E] Sinister Strip \u2014 la zone avec le plus de Coffres Sprite de toute la carte (4).", zone: "sinisterstrip" },
-  { id: "ghost", name: "Ghost", emoji: "\u{1f47b}", rarity: "Epic", drop: "5.22%", added: "06/06/2026", note: "Camouflage bref au reload \u2014 spawn la nuit uniquement", variants: ["base","gold","gummy","galaxy"], tip: "[CONFIRM\u00c9] Uniquement la nuit. Sinister Strip une fois la nuit tomb\u00e9e.", zone: "sinisterstrip" },
+  { id: "ghost", name: "Ghost", emoji: "\u{1f47b}", rarity: "Epic", drop: "5.22%", added: "06/06/2026", note: "Camouflage bref au reload \u2014 spawn la nuit uniquement", variants: ["base","gold","gummy","galaxy","holofoil"], tip: "[CONFIRM\u00c9] Uniquement la nuit. Sinister Strip une fois la nuit tomb\u00e9e.", zone: "sinisterstrip" },
   { id: "demon", name: "Demon", emoji: "\u{1f608}", rarity: "Epic", drop: "5.22%", added: "06/06/2026", note: "Vol de vie/bouclier \u00e0 l'\u00e9limination", variants: ["base","gold","gummy","galaxy"], tip: "[ZONE CONSEILL\u00c9E] Sinister Strip \u2014 la zone avec le plus de Coffres Sprite de toute la carte (4).", zone: "sinisterstrip" },
-  { id: "king", name: "King", emoji: "\u{1f451}", rarity: "Epic", drop: "5.22%", added: "06/06/2026", note: "D\u00e9g\u00e2ts de pioche augment\u00e9s", variants: ["base","gold","gummy","galaxy"], tip: "[\u00c0 V\u00c9RIFIER] Sinister Strip. Certaines sources anciennes le limitaient aux lobbies Bots \u2014 \u00e0 v\u00e9rifier en jeu.", zone: "sinisterstrip" },
+  { id: "king", name: "King", emoji: "\u{1f451}", rarity: "Epic", drop: "5.22%", added: "06/06/2026", note: "D\u00e9g\u00e2ts de pioche augment\u00e9s", variants: ["base","gold","gummy","galaxy","holofoil"], tip: "[\u00c0 V\u00c9RIFIER] Sinister Strip. Certaines sources anciennes le limitaient aux lobbies Bots \u2014 \u00e0 v\u00e9rifier en jeu.", zone: "sinisterstrip" },
   { id: "aura", name: "Aura", emoji: "\u{1f52e}", rarity: "Epic", drop: "5.74%", added: "25/06/2026", note: "Charge Shock Rock sur d\u00e9g\u00e2ts suffisants", variants: ["base","gold","gummy","galaxy"], tip: "[ZONE CONSEILL\u00c9E] Sinister Strip \u2014 la zone avec le plus de Coffres Sprite de toute la carte (4).", zone: "sinisterstrip" },
-  { id: "striker", name: "Striker", emoji: "\u26bd", rarity: "Epic", drop: "5.74%", added: "25/06/2026", note: "Overdrive au mantle/hurdle \u2014 but au terrain de foot", variants: ["base","gold","gummy","galaxy"], tip: "[CONFIRM\u00c9] But au terrain de foot \u2014 garanti, pas de RNG.", zone: null },
+  { id: "striker", name: "Striker", emoji: "\u26bd", rarity: "Epic", drop: "5.74%", added: "25/06/2026", note: "Overdrive au mantle/hurdle \u2014 but au terrain de foot", variants: ["base","gold","gummy","galaxy","holofoil"], tip: "[CONFIRM\u00c9] But au terrain de foot \u2014 garanti, pas de RNG.", zone: null },
   { id: "dream", name: "Dream", emoji: "\u{1f4a4}", rarity: "Legendary", drop: "2.436%", added: "06/06/2026", note: "Objet al\u00e9atoire \u00e0 chaque niveau, loot l\u00e9gendaire au niveau max", variants: ["base","gold","gummy","galaxy"], tip: "[ZONE CONSEILL\u00c9E] Vault Epic de Sinister Strip (Keycard l\u00e9gendaire) \u2014 3 Coffres Sprite garantis.", zone: "sinisterstrip" },
   { id: "punk", name: "Punk", emoji: "\u{1f3b8}", rarity: "Legendary", drop: "2.436%", added: "06/06/2026", note: "Chance de munitions infinies (effet al\u00e9atoire)", variants: ["base","gold","gummy","galaxy"], tip: "[ZONE CONSEILL\u00c9E] Vault Epic de Sinister Strip (Keycard l\u00e9gendaire) \u2014 3 Coffres Sprite garantis.", zone: "sinisterstrip" },
   { id: "boss", name: "Boss", emoji: "\u{1f6e1}\ufe0f", rarity: "Legendary", drop: "2.63%", added: "25/06/2026", note: "Boost Max HP/bouclier \u2014 obtenu en \u00e9liminant un boss", variants: ["base","gold","gummy","galaxy"], tip: "[CONFIRM\u00c9] \u00c9limine un PNJ Boss nomm\u00e9 \u2014 garanti, pas de RNG.", zone: null },
@@ -493,7 +494,7 @@ const ACHIEVEMENTS = [
   { id: "grim1", icon: "\u{1f480}", name: "Contre Toute Attente", desc: "Obtiens le Grim Reaper (0.000098%)", check: (p) => ["base","gold","gummy","galaxy"].some(v => p["grim:" + v]) },
   { id: "legendary4", icon: "\u2694\ufe0f", name: "Sang L\u00e9gendaire", desc: "Obtiens les 4 Sprites Legendary (Normal)", check: (p) => ["dream","punk","boss","grim"].every(id => p[id + ":base"]) },
   { id: "masteryall", icon: "\u{1f451}", name: "Ma\u00eetre Absolu", desc: "Ma\u00eetrise toutes les variantes poss\u00e9d\u00e9es", check: (p, done, masteryDone) => done > 0 && masteryDone === done },
-  { id: "complete", icon: "\u{1f3c6}", name: "100% Compl\u00e9t\u00e9", desc: "Obtiens les 61 collectibles", check: (p, done) => done >= 61 },
+  { id: "complete", icon: "\u{1f3c6}", name: "100% Compl\u00e9t\u00e9", desc: "Obtiens tous les collectibles disponibles", check: (p, done) => done >= TOTAL },
   { id: "trio", icon: "\u{1f30d}", name: "Trio \u00c9l\u00e9mentaire", desc: "Obtiens Water, Earth et Fire (Normal)", check: (p) => ["water","earth","fire"].every(id => p[id+":base"]) },
   { id: "allrare", icon: "\u{1f539}", name: "Collection Rare compl\u00e8te", desc: "Obtiens les 4 variantes des 4 Sprites Rare", check: (p) => SPRITES.filter(s=>s.rarity==="Rare").every(s => s.variants.every(v => p[s.id+":"+v])) },
   { id: "allepic", icon: "\u{1f537}", name: "Toutes les Epic", desc: "Obtiens au moins une variante des 6 Sprites Epic", check: (p) => SPRITES.filter(s=>s.rarity==="Epic").every(s => s.variants.some(v => p[s.id+":"+v])) },
@@ -503,11 +504,12 @@ const ACHIEVEMENTS = [
   { id: "goal", icon: "\u26bd", name: "But !", desc: "Obtiens le Sprite Striker", check: (p) => ["base","gold","gummy","galaxy"].some(v => p["striker:"+v]) },
   { id: "nightowl", icon: "\u{1f319}", name: "Oiseau de Nuit", desc: "Obtiens le Sprite Ghost", check: (p) => ["base","gold","gummy","galaxy"].some(v => p["ghost:"+v]) },
   { id: "mythicduo", icon: "\u2728", name: "Duo Mythique", desc: "Obtiens Zero Point et Burnt Peanut (Normal)", check: (p) => p["zeropoint:base"] && p["burntpeanut:base"] },
+  { id: "holofoil1", icon: "\u{1f48e}", name: "Effet Miroir", desc: "Obtiens ton premier Sprite Holofoil (la variante la plus rare, sortie le 9/07)", check: (p) => Object.keys(p).some(k => k.endsWith(":holofoil") && !k.startsWith("mastery:") && p[k]) },
   { id: "galaxyall", icon: "\u{1f30c}", name: "Ciel Constell\u00e9", desc: "Obtiens la variante Galaxy de tous les Sprites \u00e9ligibles", check: (p) => SPRITES.filter(s => s.variants.includes("galaxy")).every(s => p[s.id+":galaxy"]) },
   { id: "epicfull", icon: "\u{1f537}", name: "Collection Epic compl\u00e8te", desc: "Obtiens les 4 variantes des 6 Sprites Epic", check: (p) => SPRITES.filter(s=>s.rarity==="Epic").every(s => s.variants.every(v => p[s.id+":"+v])) },
   { id: "legendaryfull", icon: "\u2694\ufe0f", name: "Collection L\u00e9gendaire compl\u00e8te", desc: "Obtiens les 4 variantes des 4 Sprites Legendary", check: (p) => SPRITES.filter(s=>s.rarity==="Legendary").every(s => s.variants.every(v => p[s.id+":"+v])) },
   { id: "mastery20", icon: "\u{1f393}", name: "Expert Confirm\u00e9", desc: "Ma\u00eetrise 20 variantes au total", check: (p, done, masteryDone) => masteryDone >= 20 },
-  { id: "perfect", icon: "\u{1f48e}", name: "Perfection Totale", desc: "Obtiens ET ma\u00eetrise les 61 collectibles", check: (p, done, masteryDone) => done >= 61 && masteryDone >= 61 },
+  { id: "perfect", icon: "\u{1f48e}", name: "Perfection Totale", desc: "Obtiens ET ma\u00eetrise tous les collectibles", check: (p, done, masteryDone) => done >= TOTAL && masteryDone >= TOTAL },
   { id: "duckfull", icon: "\u{1f986}", name: "Canard Complet", desc: "Obtiens les 4 variantes de Duck", check: (p) => ["base","gold","gummy","galaxy"].every(v => p["duck:"+v]) },
   { id: "zeromaster", icon: "\u{1f573}\ufe0f", name: "Ma\u00eetre du Vide", desc: "Obtiens PUIS ma\u00eetrise une variante de Zero Point (bouton \u2b50 dans sa fiche)", check: (p) => ["base","gold","gummy","galaxy"].some(v => p["mastery:zeropoint:"+v]) },
   { id: "ghostmaster", icon: "\u{1f576}\ufe0f", name: "Sans un Bruit", desc: "Obtiens PUIS ma\u00eetrise une variante de Ghost (bouton \u2b50 dans sa fiche)", check: (p) => ["base","gold","gummy","galaxy"].some(v => p["mastery:ghost:"+v]) },
@@ -631,7 +633,7 @@ function showWarnStorage(){
 /* ----------------------------------------------------------------
    3. UTILITAIRES
    ---------------------------------------------------------------- */
-const VARIANT_MULT = { base: 1, gold: 0.0122, gummy: 0.00697, galaxy: 0.00348 };
+const VARIANT_MULT = { base: 1, gold: 0.0122, gummy: 0.00697, galaxy: 0.00348, holofoil: 0.0015 };
 function parseRange(str) {
   const m1 = str.match(/([\d.]+)-([\d.]+)%/);
   if (m1) return [parseFloat(m1[1]), parseFloat(m1[2])];
@@ -768,6 +770,33 @@ function relTime(ts){
   const dt = new Date(ts);
   return pad2(dt.getDate()) + "/" + pad2(dt.getMonth()+1) + "/" + dt.getFullYear();
 }
+/* ----- Page Quoi de neuf ----- */
+const CHANGELOG = [
+  { version: "1.10", items: ["Nouvelle variante Holofoil (la plus rare, sortie officiellement le 9 juillet)", "Disponible sur Water, Fire, Ghost, King et Striker pour l'instant \u2014 Epic en ajoutera d'autres progressivement", "Nouveau succ\u00e8s \"Effet Miroir\" pour la premi\u00e8re capture Holofoil", "Total pass\u00e9 de 61 \u00e0 66 collectibles"] },
+  { version: "1.9", items: ["Compteur de joueurs qui utilisent l'app (anonyme, sans donn\u00e9es personnelles)", "Liens TikTok (@spritedexapp64) et YouTube (@spritedexapp) dans Param\u00e8tres", "Page Quoi de neuf (celle-ci !)"] },
+  { version: "1.8", items: ["\u00c9cran de bienvenue au tout premier lancement", "Bouton \"Partager ma progression\" (g\u00e9n\u00e8re une image)", "Aper\u00e7u stylis\u00e9 quand le lien est partag\u00e9 (Open Graph)", "Rappel de sauvegarde tous les 15 Sprites obtenus"] },
+  { version: "1.7", items: ["Syst\u00e8me de Niveau/XP avec titres (D\u00e9butant \u2192 L\u00e9gende)", "Page Historique compl\u00e8te des captures", "Sprite News avec dates qui se recalculent automatiquement"] },
+  { version: "1.6", items: ["% estim\u00e9 de joueurs poss\u00e9dant chaque Sprite (calcul statistique)", "Checklist quotidienne et hebdomadaire (Mastery Monday, Power Hour...)"] },
+  { version: "1.5", items: ["Temps de capture estim\u00e9 par variante", "Couleurs d'accent personnalisables, mode compact, r\u00e9duction des animations, vibrations"] },
+  { version: "1.4", items: ["27 succ\u00e8s \u00e0 d\u00e9bloquer + page d\u00e9di\u00e9e", "Carte sch\u00e9matique des zones de farm", "Astuces d\u00e9taill\u00e9es par Sprite"] },
+  { version: "1.3", items: ["Refonte compl\u00e8te en vraie web app (navigation par onglets, fiches d\u00e9taill\u00e9es)", "Statistiques par raret\u00e9 et par variante"] },
+  { version: "1.0", items: ["Premi\u00e8re version : suivi des 61 collectibles (16 Sprites \u00d7 variantes)", "Taux de drop et sauvegarde automatique"] },
+];
+function renderChangelogPage(){
+  let html = '<div class="glass section-card">';
+  html += '  <div class="setting-sub" style="margin-bottom:6px;">Tout ce qu\u2019on a ajout\u00e9 \u00e0 Sprite Dex, du plus r\u00e9cent au plus ancien.</div>';
+  html += '</div>';
+  CHANGELOG.forEach((entry, i) => {
+    html += '<div class="glass section-card stagger-in" style="animation-delay:' + Math.min(i*0.05,0.4) + 's">';
+    html += '  <div class="section-title">Version ' + entry.version + '</div>';
+    html += '  <ul style="margin:0;padding-left:18px;">';
+    entry.items.forEach(it => { html += '<li style="font-size:.8rem;color:var(--text-1);margin-bottom:6px;line-height:1.4;">' + it + '</li>'; });
+    html += '  </ul>';
+    html += '</div>';
+  });
+  return html;
+}
+
 function renderHistoryPage(){
   if (!state.history.length){
     return '<div class="no-results">Aucune capture enregistr\u00e9e pour l\u2019instant.<br>Coche une variante dans la Collection pour commencer ton historique.</div>';
@@ -876,9 +905,9 @@ function renderShell(){
 
   // En-tête
   const top = document.getElementById("topbar");
-  const isSub = state.page === "stats" || state.page === "history";
+  const isSub = state.page === "stats" || state.page === "history" || state.page === "changelog";
   if (isSub){
-    const subTitle = state.page === "stats" ? "Statistiques" : "Historique";
+    const subTitle = state.page === "stats" ? "Statistiques" : state.page === "history" ? "Historique" : "Quoi de neuf";
     top.innerHTML = '<div style="display:flex;align-items:center;gap:10px;">' +
       '<button class="back-btn" aria-label="Retour" onclick="goTo(\'home\')">' + ICONS.back + '</button>' +
       '<h1 style="font-size:1.25rem;">' + subTitle + '</h1></div>';
@@ -890,7 +919,7 @@ function renderShell(){
 
 function renderPage(navDirection){
   const c = document.getElementById("pageContainer");
-  const renderers = { home: renderHome, collection: renderCollection, map: renderMapPage, achievements: renderAchievementsPage, news: renderNews, settings: renderSettings, stats: renderStats, history: renderHistoryPage };
+  const renderers = { home: renderHome, collection: renderCollection, map: renderMapPage, achievements: renderAchievementsPage, news: renderNews, settings: renderSettings, stats: renderStats, history: renderHistoryPage, changelog: renderChangelogPage };
   const html = (renderers[state.page] || renderHome)();
   // On enveloppe le contenu dans une div fraîchement créée à chaque appel.
   // Une animation CSS ne se rejoue jamais sur un élément déjà présent dans le DOM
@@ -1590,11 +1619,14 @@ function renderSettings(){
           '    <button class="btn btn-ghost" onclick="window.open(\'' + YOUTUBE_URL + '\', \'_blank\')">@spritedexapp</button></div>';
   html += '  <div class="setting-row"><div><div class="setting-label">Signaler un bug / donner un avis</div><div class="setting-sub">Envoie-nous un message directement sur TikTok</div></div>' +
           '    <button class="btn btn-ghost" onclick="window.open(\'' + TIKTOK_URL + '\', \'_blank\')">Contacter</button></div>';
+  html += '  <div class="setting-row"><div><div class="setting-label">Quoi de neuf</div><div class="setting-sub">L\u2019historique des mises \u00e0 jour de l\u2019app</div></div>' +
+          '    <button class="btn btn-ghost" onclick="goTo(\'changelog\')">Voir</button></div>';
   html += '</div>';
 
   html += '<div class="glass section-card">';
   html += '  <div class="section-title">\u2139\ufe0f \u00c0 propos des taux</div>';
   html += '  <div class="about-note">Taux "Base" issus d\'une table d\u00e9taill\u00e9e communautaire (AccountShark, maj 02/07/2026) \u2014 non officiels, Epic ne publie pas ces chiffres. Taux Gold/Gummy/Galaxy calcul\u00e9s avec un ratio observ\u00e9 sur Aura/Striker (Base\u2192Gold \u00f782, \u2192Gummy \u00f7143, \u2192Galaxy \u00f7287) puis extrapol\u00e9s aux autres Sprites.</div>';
+  html += '  <div class="about-note">\u{1f48e} Le taux Holofoil est une pure estimation (encore plus rare que Galaxy) \u2014 Epic n\'a communiqu\u00e9 aucun chiffre officiel pour cette toute nouvelle variante sortie le 9 juillet.</div>';
   html += '  <div class="about-note">Temps de capture estim\u00e9 (\u23f1\ufe0f dans la fiche de chaque Sprite) = calcul th\u00e9orique en supposant ' + CHESTS_PER_MATCH + ' Coffres Sprite ouverts par partie sur ~' + MATCH_MINUTES + ' min de farm (zone dense type Sinister Strip). C\'est une moyenne statistique, pas une garantie : tu peux l\'obtenir bien plus vite... ou bien plus lentement.</div>';
   html += '  <div class="about-note">\u{1f465} % de joueurs qui l\'ont (dans la Collection) = m\u00eame logique, mais en supposant ' + SEASON_CHESTS + ' Coffres Sprite ouverts par un joueur actif sur toute la saison. Epic ne publie aucune vraie statistique l\u00e0-dessus \u2014 c\'est un calcul de probabilit\u00e9, pas une donn\u00e9e r\u00e9elle.</div>';
   html += '  <div class="about-note">\u{1f3ae} Le compteur "joueurs" sur l\'accueil s\'incr\u00e9mente automatiquement une fois par appareil, au tout premier lancement, via un service externe gratuit (CounterAPI). Aucune donn\u00e9e personnelle n\'est envoy\u00e9e \u2014 juste un +1 anonyme.</div>';
