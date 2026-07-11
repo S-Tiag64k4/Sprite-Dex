@@ -597,7 +597,7 @@ function saveJSON(key, value){
 const state = {
   progress: loadJSON(KEY_PROGRESS, {}),
   favorites: loadJSON(KEY_FAVORITES, {}),
-  settings: Object.assign({ theme: "dark", textSize: "medium", reducedMotion: false, vibrations: true, compactMode: false, accent: "aura" }, loadJSON(KEY_SETTINGS, {})),
+  settings: Object.assign({ theme: "dark", textSize: "medium", reducedMotion: false, vibrations: true, compactMode: false, accent: "aura", lang: "fr" }, loadJSON(KEY_SETTINGS, {})),
   history: loadJSON(KEY_HISTORY, []),        // [{key, ts}] — dernières variantes obtenues
   achvSeen: loadJSON(KEY_ACHV_SEEN, []),     // ids de succès déjà vus/annoncés
   checklist: loadJSON(KEY_CHECKLIST, { dailyDate: "", dailyDone: {}, weekStart: "", weeklyDone: {} }),
@@ -666,6 +666,11 @@ const YOUTUBE_URL = "https://youtube.com/@spritedexapp";
 // premier lancement, pour approximer le nombre de personnes diff\u00e9rentes ayant essay\u00e9
 // l'app (plut\u00f4t que de compter chaque r\u00e9ouverture, ce qui gonflerait artificiellement le chiffre).
 const COUNTER_NAMESPACE = "spritedexapp64k4";
+// Tableau des joueurs (pseudo public partag\u00e9 entre tout le monde) via JSONBlob,
+// un service gratuit de stockage JSON sans inscription. BLOB_ID doit \u00eatre cr\u00e9\u00e9
+// une seule fois manuellement sur jsonblob.com, puis coll\u00e9 ici.
+const LEADERBOARD_BLOB_ID = "REPLACE_ME";
+const LEADERBOARD_URL = "https://jsonblob.com/api/jsonBlob/" + LEADERBOARD_BLOB_ID;
 const COUNTER_NAME = "users";
 const CHESTS_PER_MATCH = 3;
 const MATCH_MINUTES = 12;
@@ -867,13 +872,125 @@ const ICONS = {
 /* ----------------------------------------------------------------
    5. NAVIGATION — coquille (topbar + navbar) + routeur de pages
    ---------------------------------------------------------------- */
+/* ----------------------------------------------------------------
+   LANGUE / TRADUCTIONS
+   ---------------------------------------------------------------- */
+const I18N = {
+  fr: {
+    navHome: "Accueil", navCollection: "Collection", navMap: "Carte", navAchv: "Succ\u00e8s", navNews: "News", navSettings: "Param\u00e8tres",
+    titleHome: "Sprite Dex", titleCollection: "Collection", titleMap: "Carte des zones", titleAchv: "Succ\u00e8s", titleNews: "Sprite News", titleSettings: "Param\u00e8tres",
+    titleStats: "Statistiques", titleHistory: "Historique", titleChangelog: "Quoi de neuf",
+    progressionGlobale: "Progression globale", collectibles: "collectibles", maitrises: "ma\u00eetris\u00e9s",
+    continuerCollection: "Continuer la collection", voirStats: "Voir toutes les statistiques",
+    saveReminderTitle: "Pense \u00e0 sauvegarder ta progression",
+    saveReminderDesc: "Ta collection n\u2019est stock\u00e9e que sur cet appareil. Exporte un fichier de secours pour ne rien perdre si tu changes de t\u00e9l\u00e9phone ou effaces les donn\u00e9es du navigateur.",
+    exportNow: "Exporter maintenant", later: "Plus tard",
+    niveauChasseur: "Niveau Chasseur", niveau: "Niveau", xpAvant: "XP avant le niveau", xpTotal: "XP total",
+    partagerProgression: "\u{1f4e4} Partager ma progression",
+    derniersSprites: "Derniers Sprites obtenus", coche1ere: "Coche ta premi\u00e8re variante dans la Collection pour la voir appara\u00eetre ici.",
+    voirHistorique: "Voir l\u2019historique complet",
+    derniersSucces: "Derniers succ\u00e8s d\u00e9bloqu\u00e9s", aucunSucces: "Aucun succ\u00e8s d\u00e9bloqu\u00e9 pour le moment.",
+    voirTousSucces: "Voir tous les succ\u00e8s",
+    faitMaison: "Sprite Dex est fait maison \u2014 suis", surTiktok: "sur TikTok",
+    rechercherSprite: "Rechercher un Sprite...", tous: "Tous", favoris: "\u2665 Favoris",
+    trier: "Trier par : ", nom: "Nom", rarete: "Raret\u00e9", date: "Date", taux: "Taux", progr: "Progr.", poss: "Poss.", manquants: "Manquants",
+    aucunResultat: "Aucun Sprite ne correspond \u00e0 ces filtres.",
+    ajouteLe: "Ajout\u00e9 le", tauxDeBase: "Taux de base",
+    variantesProgression: "Variantes & progression", maitrise: "Ma\u00eetris\u00e9", obtiensDabord: "Obtiens d\u2019abord cette variante",
+    voirSurCarte: "Voir sur la carte",
+    carteDisclaimer: "Carte stylis\u00e9e non-officielle (pas la vraie carte du jeu, prot\u00e9g\u00e9e par Epic Games) \u2014 sert juste \u00e0 visualiser o\u00f9 se trouvent les zones cit\u00e9es dans les astuces. Pince pour zoomer, glisse pour te d\u00e9placer, appuie sur un point.",
+    toutesZones: "Toutes les zones", avecVault: "Avec Vault Epic", zoneStandard: "Zone standard", zoneSelectionnee: "Zone s\u00e9lectionn\u00e9e", vaultEpic: "Vault Epic",
+    tapZone: "Appuie sur une zone pour voir le d\u00e9tail, ou sur \"Voir sur la carte\" depuis une fiche Sprite.",
+    progressionSucces: "Progression des succ\u00e8s", debloques: "D\u00e9bloqu\u00e9s", verrouilles: "Verrouill\u00e9s", aucunSuccesCategorie: "Aucun succ\u00e8s dans cette cat\u00e9gorie.",
+    statsParRarete: "Progression par raret\u00e9", statsParVariante: "Progression par variante",
+    termines: "Termin\u00e9s", masteries: "Ma\u00eetris\u00e9s",
+    apparence: "Apparence", modeSombre: "Mode sombre", modeSombreSub: "Bascule entre th\u00e8me clair et sombre",
+    tailleTexte: "Taille du texte", petit: "Petit", moyen: "Moyen", grand: "Grand",
+    couleurAccent: "Couleur d\u2019accent", modeCompact: "Mode compact", modeCompactSub: "Liste de la Collection plus dense, notes masqu\u00e9es",
+    confort: "Confort", reduireAnim: "R\u00e9duire les animations", reduireAnimSub: "D\u00e9sactive les transitions et effets d\u2019entr\u00e9e, ind\u00e9pendamment du r\u00e9glage de ton t\u00e9l\u00e9phone",
+    vibrations: "Vibrations", vibrationsSub: "Petite vibration quand tu obtiens ou ma\u00eetrises un Sprite (si ton appareil le supporte)",
+    langue: "Langue", langueSub: "Fran\u00e7ais ou English",
+    donnees: "Donn\u00e9es", exporterProg: "Exporter la progression", exporterSub: "Sauvegarde en fichier .json",
+    importerProg: "Importer une sauvegarde", importerSub: "Restaure depuis un fichier .json",
+    reinitialiser: "R\u00e9initialiser", reinitialiserSub: "Efface toute la progression",
+    communaute: "\u{1f4f1} Communaut\u00e9", suivreDev: "Suivre le d\u00e9veloppement", suivreDevSub: "Nouveaut\u00e9s, coulisses et mises \u00e0 jour de l\u2019app",
+    chaineYoutube: "Cha\u00eene YouTube", chaineYoutubeSub: "Vid\u00e9os et tutos de l\u2019app",
+    signalerBug: "Signaler un bug / donner un avis", signalerBugSub: "Envoie-nous un message directement sur TikTok", contacter: "Contacter",
+    quoiDeNeuf: "Quoi de neuf", quoiDeNeufSub: "L\u2019historique des mises \u00e0 jour de l\u2019app", voir: "Voir",
+    aProposTaux: "\u2139\ufe0f \u00c0 propos des taux",
+    appNonOfficielle: "Sprite Dex \u00b7 application non officielle, non affili\u00e9e \u00e0 Epic Games.",
+    reinitConfirm: "R\u00e9initialiser toute la progression ? Cette action est irr\u00e9versible.",
+    progressionReset: "Progression r\u00e9initialis\u00e9e", fichierExporte: "Fichier export\u00e9", saveImportee: "Sauvegarde import\u00e9e", fichierInvalide: "Fichier invalide",
+    ajouteFavoris: "Ajout\u00e9 aux favoris", retireFavoris: "Retir\u00e9 des favoris", spriteObtenu: "Sprite obtenu !",
+    aucuneCaptureHist: "Aucune capture enregistr\u00e9e pour l\u2019instant.", cocheVarianteHist: "Coche une variante dans la Collection pour commencer ton historique.",
+    dernieresConservees: "derni\u00e8res conserv\u00e9es",
+    bienvenue: "Bienvenue", cestParti: "C\u2019est parti !",
+    eyebrow: "Chapitre 7 \u00b7 Saison 3 \u00b7 Runners",
+  },
+  en: {
+    navHome: "Home", navCollection: "Collection", navMap: "Map", navAchv: "Achievements", navNews: "News", navSettings: "Settings",
+    titleHome: "Sprite Dex", titleCollection: "Collection", titleMap: "Zone Map", titleAchv: "Achievements", titleNews: "Sprite News", titleSettings: "Settings",
+    titleStats: "Statistics", titleHistory: "History", titleChangelog: "What's New",
+    progressionGlobale: "Overall progress", collectibles: "collectibles", maitrises: "mastered",
+    continuerCollection: "Continue collection", voirStats: "View all statistics",
+    saveReminderTitle: "Remember to back up your progress",
+    saveReminderDesc: "Your collection is only stored on this device. Export a backup file so you don't lose anything if you switch phones or clear browser data.",
+    exportNow: "Export now", later: "Later",
+    niveauChasseur: "Hunter Level", niveau: "Level", xpAvant: "XP until level", xpTotal: "Total XP",
+    partagerProgression: "\u{1f4e4} Share my progress",
+    derniersSprites: "Recently obtained Sprites", coche1ere: "Check off your first variant in Collection to see it appear here.",
+    voirHistorique: "View full history",
+    derniersSucces: "Recently unlocked achievements", aucunSucces: "No achievements unlocked yet.",
+    voirTousSucces: "View all achievements",
+    faitMaison: "Sprite Dex is made by fans \u2014 follow", surTiktok: "on TikTok",
+    rechercherSprite: "Search a Sprite...", tous: "All", favoris: "\u2665 Favorites",
+    trier: "Sort by: ", nom: "Name", rarete: "Rarity", date: "Date", taux: "Rate", progr: "Progr.", poss: "Owned", manquants: "Missing",
+    aucunResultat: "No Sprite matches these filters.",
+    ajouteLe: "Added on", tauxDeBase: "Base rate",
+    variantesProgression: "Variants & progress", maitrise: "Mastered", obtiensDabord: "Get this variant first",
+    voirSurCarte: "View on map",
+    carteDisclaimer: "Unofficial stylized map (not the real game map, which is protected by Epic Games) \u2014 just here to visualize the zones mentioned in the tips. Pinch to zoom, drag to move, tap a point.",
+    toutesZones: "All zones", avecVault: "With Epic Vault", zoneStandard: "Standard zone", zoneSelectionnee: "Selected zone", vaultEpic: "Epic Vault",
+    tapZone: "Tap a zone to see details, or \"View on map\" from a Sprite's page.",
+    progressionSucces: "Achievement progress", debloques: "Unlocked", verrouilles: "Locked", aucunSuccesCategorie: "No achievements in this category.",
+    statsParRarete: "Progress by rarity", statsParVariante: "Progress by variant",
+    termines: "Completed", masteries: "Mastered",
+    apparence: "Appearance", modeSombre: "Dark mode", modeSombreSub: "Switch between light and dark theme",
+    tailleTexte: "Text size", petit: "Small", moyen: "Medium", grand: "Large",
+    couleurAccent: "Accent color", modeCompact: "Compact mode", modeCompactSub: "Denser Collection list, notes hidden",
+    confort: "Comfort", reduireAnim: "Reduce animations", reduireAnimSub: "Disables transitions and entrance effects, independently of your phone's system setting",
+    vibrations: "Vibrations", vibrationsSub: "Small vibration when you obtain or master a Sprite (if your device supports it)",
+    langue: "Language", langueSub: "Fran\u00e7ais or English",
+    donnees: "Data", exporterProg: "Export progress", exporterSub: "Save as a .json file",
+    importerProg: "Import a backup", importerSub: "Restore from a .json file",
+    reinitialiser: "Reset", reinitialiserSub: "Erases all progress",
+    communaute: "\u{1f4f1} Community", suivreDev: "Follow development", suivreDevSub: "Updates, behind the scenes and app news",
+    chaineYoutube: "YouTube channel", chaineYoutubeSub: "App videos and tutorials",
+    signalerBug: "Report a bug / give feedback", signalerBugSub: "Send us a message directly on TikTok", contacter: "Contact",
+    quoiDeNeuf: "What's new", quoiDeNeufSub: "The app's update history", voir: "View",
+    aProposTaux: "\u2139\ufe0f About the rates",
+    appNonOfficielle: "Sprite Dex \u00b7 unofficial app, not affiliated with Epic Games.",
+    reinitConfirm: "Reset all progress? This action cannot be undone.",
+    progressionReset: "Progress reset", fichierExporte: "File exported", saveImportee: "Backup imported", fichierInvalide: "Invalid file",
+    ajouteFavoris: "Added to favorites", retireFavoris: "Removed from favorites", spriteObtenu: "Sprite obtained!",
+    aucuneCaptureHist: "No captures logged yet.", cocheVarianteHist: "Check off a variant in Collection to start your history.",
+    dernieresConservees: "most recent kept",
+    bienvenue: "Welcome", cestParti: "Let's go!",
+    eyebrow: "Chapter 7 \u00b7 Season 3 \u00b7 Runners",
+  },
+};
+function t(key){
+  const lang = (state.settings && state.settings.lang) || "fr";
+  return (I18N[lang] && I18N[lang][key] !== undefined) ? I18N[lang][key] : (I18N.fr[key] || key);
+}
+
 const PAGES = [
-  { id:"home", label:"Accueil", title:"Sprite Dex", icon:"home", color:"#7C6AE8" },
-  { id:"collection", label:"Collection", title:"Collection", icon:"collection", color:"#E85D9C" },
-  { id:"map", label:"Carte", title:"Carte des zones", icon:"map", color:"#5DA9E8" },
-  { id:"achievements", label:"Succ\u00e8s", title:"Succ\u00e8s", icon:"trophy", color:"#E8B84B" },
-  { id:"news", label:"News", title:"Sprite News", icon:"news", color:"#8FE0A0" },
-  { id:"settings", label:"Param\u00e8tres", title:"Param\u00e8tres", icon:"settings", color:"#AEB4C4" },
+  { id:"home", labelKey:"navHome", titleKey:"titleHome", icon:"home", color:"#7C6AE8" },
+  { id:"collection", labelKey:"navCollection", titleKey:"titleCollection", icon:"collection", color:"#E85D9C" },
+  { id:"map", labelKey:"navMap", titleKey:"titleMap", icon:"map", color:"#5DA9E8" },
+  { id:"achievements", labelKey:"navAchv", titleKey:"titleAchv", icon:"trophy", color:"#E8B84B" },
+  { id:"news", labelKey:"navNews", titleKey:"titleNews", icon:"news", color:"#8FE0A0" },
+  { id:"settings", labelKey:"navSettings", titleKey:"titleSettings", icon:"settings", color:"#AEB4C4" },
 ];
 
 function goTo(pageId, opts){
@@ -899,21 +1016,22 @@ function renderShell(){
   const nav = document.getElementById("navbar");
   nav.innerHTML = PAGES.map(p => {
     const active = state.page === p.id || (p.id === "home" && state.page === "stats");
-    return '<button class="nav-btn ' + (active ? "active" : "") + '" style="' + (active ? "color:" + p.color + ";" : "") + '" aria-label="' + p.label + '" aria-current="' + (active?"page":"false") + '" onclick="goTo(\'' + p.id + '\')">' +
-      ICONS[p.icon] + '<span>' + p.label + '</span></button>';
+    const label = t(p.labelKey);
+    return '<button class="nav-btn ' + (active ? "active" : "") + '" style="' + (active ? "color:" + p.color + ";" : "") + '" aria-label="' + label + '" aria-current="' + (active?"page":"false") + '" onclick="goTo(\'' + p.id + '\')">' +
+      ICONS[p.icon] + '<span>' + label + '</span></button>';
   }).join("");
 
   // En-tête
   const top = document.getElementById("topbar");
   const isSub = state.page === "stats" || state.page === "history" || state.page === "changelog";
   if (isSub){
-    const subTitle = state.page === "stats" ? "Statistiques" : state.page === "history" ? "Historique" : "Quoi de neuf";
+    const subTitle = state.page === "stats" ? t("titleStats") : state.page === "history" ? t("titleHistory") : t("titleChangelog");
     top.innerHTML = '<div style="display:flex;align-items:center;gap:10px;">' +
       '<button class="back-btn" aria-label="Retour" onclick="goTo(\'home\')">' + ICONS.back + '</button>' +
       '<h1 style="font-size:1.25rem;">' + subTitle + '</h1></div>';
   } else {
     const meta = PAGES.find(p => p.id === state.page);
-    top.innerHTML = '<div class="eyebrow">' + ICONS.sparkle.replace('<svg ', '<svg style="width:12px;height:12px;" ') + ' Chapitre 7 \u00b7 Saison 3 \u00b7 Runners</div><h1>' + meta.title + '</h1>';
+    top.innerHTML = '<div class="eyebrow">' + ICONS.sparkle.replace('<svg ', '<svg style="width:12px;height:12px;" ') + ' ' + t("eyebrow") + '</div><h1>' + t(meta.titleKey) + '</h1>';
   }
 }
 
@@ -936,7 +1054,7 @@ function renderPage(navDirection){
   c.innerHTML = '<div class="' + animClass + '">' + html + '</div>';
   // Actions post-rendu spécifiques à certaines pages
   if (state.page === "map") { attachMapGestures(); renderMapPins(); }
-  if (state.page === "home") { renderUserCountBadge(); }
+  if (state.page === "home") { renderUserCountBadge(); renderLeaderboardList(); }
   checkAchievements();
 }
 
@@ -1038,8 +1156,8 @@ function renderHome(){
     html += '  <div style="display:flex;align-items:flex-start;gap:10px;">';
     html += '    <div style="font-size:1.3rem;">\u{1f4be}</div>';
     html += '    <div style="flex:1;">';
-    html += '      <div style="font-weight:700;font-size:.85rem;">Pense \u00e0 sauvegarder ta progression</div>';
-    html += '      <div style="font-size:.72rem;color:var(--text-2);margin-top:2px;">Ta collection n\u2019est stock\u00e9e que sur cet appareil. Exporte un fichier de secours pour ne rien perdre si tu changes de t\u00e9l\u00e9phone ou effaces les donn\u00e9es du navigateur.</div>';
+    html += '      <div style="font-weight:700;font-size:.85rem;">' + t("saveReminderTitle") + '</div>';
+    html += '      <div style="font-size:.72rem;color:var(--text-2);margin-top:2px;">' + t("saveReminderDesc") + '</div>';
     html += '      <div style="display:flex;gap:8px;margin-top:10px;">';
     html += '        <button class="btn btn-primary" style="padding:8px 14px;font-size:.78rem;" onclick="exportFromReminder()">Exporter maintenant</button>';
     html += '        <button class="btn btn-ghost" style="padding:8px 14px;font-size:.78rem;" onclick="dismissBackupReminder()">Plus tard</button>';
@@ -1051,41 +1169,51 @@ function renderHome(){
 
   const lvl = levelInfo(computeTotalXP());
   html += '<div class="glass section-card">';
-  html += '  <div class="section-title">' + ICONS.trophy.replace('<svg ', '<svg class="ico" style="color:var(--c-gold);" ') + 'Niveau Chasseur</div>';
+  html += '  <div class="section-title">' + ICONS.trophy.replace('<svg ', '<svg class="ico" style="color:var(--c-gold);" ') + '' + t("niveauChasseur") + '</div>';
   html += '  <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px;">';
   html += '    <div><span style="font-family:var(--f-display);font-size:1.6rem;font-weight:700;">Niveau ' + lvl.level + '</span>';
   html += '    <span style="font-size:.8rem;color:var(--c-gold);font-weight:700;margin-left:6px;">' + lvl.title + '</span></div>';
   html += '    <div style="font-size:.7rem;color:var(--text-2);font-family:var(--f-mono);">' + lvl.into + ' / ' + lvl.next + ' XP</div>';
   html += '  </div>';
   html += '  <div class="bar-row-track" style="height:9px;"><div class="bar-row-fill" style="width:' + lvl.pct + '%;background:var(--grad-aura);"></div></div>';
-  html += '  <div style="font-size:.68rem;color:var(--text-2);margin-top:8px;">' + (lvl.next - lvl.into) + ' XP avant le niveau ' + (lvl.level+1) + ' \u00b7 XP total : ' + lvl.xp + '</div>';
-  html += '  <button class="btn btn-ghost btn-block" style="margin-top:14px;" onclick="shareProgress()">\u{1f4e4} Partager ma progression</button>';
+  html += '  <div style="font-size:.68rem;color:var(--text-2);margin-top:8px;">' + (lvl.next - lvl.into) + ' ' + t("xpAvant") + ' ' + (lvl.level+1) + ' \u00b7 ' + t("xpTotal") + ' : ' + lvl.xp + '</div>';
+  html += '  <button class="btn btn-ghost btn-block" style="margin-top:14px;" onclick="shareProgress()">\u{1f4e4} ' + t("partagerProgression").replace('\u{1f4e4} ','') + '</button>';
   html += '</div>';
 
   html += renderChecklistSection();
 
   html += '<div class="glass section-card">';
-  html += '  <div class="section-title">' + ICONS.sparkle.replace('<svg ', '<svg class="ico" ') + 'Derniers Sprites obtenus</div>';
+  html += '  <div class="section-title">\u{1f465} Joueurs de Sprite Dex</div>';
+  html += '  <div class="setting-sub" style="margin-bottom:10px;">Ajoute ton pseudo pour appara\u00eetre dans la liste \u2014 visible par tout le monde. Un seul pseudo par personne (tu peux le modifier plus tard).</div>';
+  html += '  <div style="display:flex;gap:8px;margin-bottom:14px;">';
+  html += '    <input id="pseudoInput" type="text" maxlength="20" placeholder="Ton pseudo..." style="flex:1;background:var(--bg-glass);border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-size:.85rem;color:var(--text-0);outline:none;">';
+  html += '    <button id="pseudoSubmitBtn" class="btn btn-primary" style="padding:10px 16px;" onclick="submitPseudo()">Valider</button>';
+  html += '  </div>';
+  html += '  <div id="leaderboardList"><div class="empty-hint">Chargement...</div></div>';
+  html += '</div>';
+
+  html += '<div class="glass section-card">';
+  html += '  <div class="section-title">' + ICONS.sparkle.replace('<svg ', '<svg class="ico" ') + '' + t("derniersSprites") + '</div>';
   if (recent.length){
     html += '<div class="hscroll">' + recent.map((r, i) =>
       '<div class="mini-sprite stagger-in" style="animation-delay:' + Math.min(i*0.05, 0.3) + 's"><div class="emoji">' + r.sprite.emoji + '</div><div class="n">' + r.sprite.name + '</div>' +
       '<span class="variant-tag" style="color:' + r.v.color + ';background:' + r.v.glow + '">' + r.v.label + '</span></div>'
     ).join("") + '</div>';
   } else {
-    html += '<div class="empty-hint">Coche ta premi\u00e8re variante dans la Collection pour la voir appara\u00eetre ici.</div>';
+    html += '<div class="empty-hint">' + t("coche1ere") + '</div>';
   }
-  html += '  <button class="btn btn-ghost btn-block" style="margin-top:12px;" onclick="goTo(\'history\')">Voir l\u2019historique complet</button>';
+  html += '  <button class="btn btn-ghost btn-block" style="margin-top:12px;" onclick="goTo(\'history\')">' + t("voirHistorique") + '</button>';
   html += '</div>';
 
   html += '<div class="glass section-card">';
-  html += '  <div class="section-title">' + ICONS.trophy.replace('<svg ', '<svg class="ico" ') + 'Derniers succ\u00e8s d\u00e9bloqu\u00e9s</div>';
+  html += '  <div class="section-title">' + ICONS.trophy.replace('<svg ', '<svg class="ico" ') + '' + t("derniersSucces") + '</div>';
   const recentAchv = unlocked.slice(-3).reverse();
   if (recentAchv.length){
     html += recentAchv.map((a, i) => '<div class="achv-mini-row stagger-in" style="animation-delay:' + (i*0.06) + 's"><div class="ic">' + a.icon + '</div><div><div class="n">' + a.name + '</div><div class="d">' + a.desc + '</div></div></div>').join("");
   } else {
-    html += '<div class="empty-hint">Aucun succ\u00e8s d\u00e9bloqu\u00e9 pour le moment.</div>';
+    html += '<div class="empty-hint">' + t("aucunSucces") + '</div>';
   }
-  html += '  <button class="btn btn-ghost btn-block" style="margin-top:12px;" onclick="goTo(\'achievements\')">Voir tous les succ\u00e8s (' + unlocked.length + '/' + ACHIEVEMENTS.length + ')</button>';
+  html += '  <button class="btn btn-ghost btn-block" style="margin-top:12px;" onclick="goTo(\'achievements\')">' + t("voirTousSucces") + ' (' + unlocked.length + '/' + ACHIEVEMENTS.length + ')</button>';
   html += '</div>';
 
   html += '<div style="text-align:center;font-size:.72rem;color:var(--text-2);margin:18px 0 6px;">Sprite Dex est fait maison \u2014 <a href="' + TIKTOK_URL + '" target="_blank" style="color:var(--c-purple);font-weight:700;">suis @spritedexapp64 sur TikTok</a></div>';
@@ -1578,64 +1706,72 @@ function renderSettings(){
   const s = state.settings;
   let html = '';
   html += '<div class="glass section-card">';
-  html += '  <div class="section-title">Apparence</div>';
-  html += '  <div class="setting-row"><div><div class="setting-label">Mode sombre</div><div class="setting-sub">Bascule entre th\u00e8me clair et sombre</div></div>' +
-          '    <button class="switch ' + (s.theme==="dark"?"on":"") + '" role="switch" aria-checked="' + (s.theme==="dark") + '" aria-label="Mode sombre" onclick="toggleTheme()"><span class="knob"></span></button></div>';
+  html += '  <div class="section-title">' + t("apparence") + '</div>';
+  html += '  <div class="setting-row"><div><div class="setting-label">' + t("modeSombre") + '</div><div class="setting-sub">' + t("modeSombreSub") + '</div></div>' +
+          '    <button class="switch ' + (s.theme==="dark"?"on":"") + '" role="switch" aria-checked="' + (s.theme==="dark") + '" aria-label="' + t("modeSombre") + '" onclick="toggleTheme()"><span class="knob"></span></button></div>';
+  html += '  <div class="setting-row"><div><div class="setting-label">' + t("langue") + '</div><div class="setting-sub">' + t("langueSub") + '</div></div>' +
+          '    <button class="switch ' + (s.lang==="en"?"on":"") + '" role="switch" aria-checked="' + (s.lang==="en") + '" aria-label="' + t("langue") + '" onclick="toggleLang()"><span class="knob"></span></button></div>';
   html += '  <div class="setting-row" style="flex-direction:column;align-items:stretch;">' +
-          '    <div class="setting-label" style="margin-bottom:8px;">Taille du texte</div>' +
+          '    <div class="setting-label" style="margin-bottom:8px;">' + t("tailleTexte") + '</div>' +
           '    <div class="segmented">' +
-          ['small','medium','large'].map(sz => '<button class="' + (s.textSize===sz?"active":"") + '" onclick="setTextSize(\'' + sz + '\')">' + ({small:"Petit",medium:"Moyen",large:"Grand"}[sz]) + '</button>').join("") +
+          ['small','medium','large'].map(sz => '<button class="' + (s.textSize===sz?"active":"") + '" onclick="setTextSize(\'' + sz + '\')">' + ({small:t("petit"),medium:t("moyen"),large:t("grand")}[sz]) + '</button>').join("") +
           '    </div></div>';
   html += '  <div class="setting-row" style="flex-direction:column;align-items:stretch;">' +
-          '    <div class="setting-label" style="margin-bottom:8px;">Couleur d\u2019accent</div>' +
+          '    <div class="setting-label" style="margin-bottom:8px;">' + t("couleurAccent") + '</div>' +
           '    <div class="segmented">' +
           Object.keys(ACCENTS).map(key => '<button class="' + (s.accent===key?"active":"") + '" onclick="setAccent(\'' + key + '\')">' + ACCENTS[key].label + '</button>').join("") +
           '    </div></div>';
-  html += '  <div class="setting-row"><div><div class="setting-label">Mode compact</div><div class="setting-sub">Liste de la Collection plus dense, notes masqu\u00e9es</div></div>' +
-          '    <button class="switch ' + (s.compactMode?"on":"") + '" role="switch" aria-checked="' + (!!s.compactMode) + '" aria-label="Mode compact" onclick="toggleCompactMode()"><span class="knob"></span></button></div>';
+  html += '  <div class="setting-row"><div><div class="setting-label">' + t("modeCompact") + '</div><div class="setting-sub">' + t("modeCompactSub") + '</div></div>' +
+          '    <button class="switch ' + (s.compactMode?"on":"") + '" role="switch" aria-checked="' + (!!s.compactMode) + '" aria-label="' + t("modeCompact") + '" onclick="toggleCompactMode()"><span class="knob"></span></button></div>';
   html += '</div>';
 
   html += '<div class="glass section-card">';
-  html += '  <div class="section-title">Confort</div>';
-  html += '  <div class="setting-row"><div><div class="setting-label">R\u00e9duire les animations</div><div class="setting-sub">D\u00e9sactive les transitions et effets d\u2019entr\u00e9e, ind\u00e9pendamment du r\u00e9glage de ton t\u00e9l\u00e9phone</div></div>' +
-          '    <button class="switch ' + (s.reducedMotion?"on":"") + '" role="switch" aria-checked="' + (!!s.reducedMotion) + '" aria-label="R\u00e9duire les animations" onclick="toggleReducedMotion()"><span class="knob"></span></button></div>';
-  html += '  <div class="setting-row"><div><div class="setting-label">Vibrations</div><div class="setting-sub">Petite vibration quand tu obtiens ou ma\u00eetrises un Sprite (si ton appareil le supporte)</div></div>' +
-          '    <button class="switch ' + (s.vibrations?"on":"") + '" role="switch" aria-checked="' + (!!s.vibrations) + '" aria-label="Vibrations" onclick="toggleVibrations()"><span class="knob"></span></button></div>';
+  html += '  <div class="section-title">' + t("confort") + '</div>';
+  html += '  <div class="setting-row"><div><div class="setting-label">' + t("reduireAnim") + '</div><div class="setting-sub">' + t("reduireAnimSub") + '</div></div>' +
+          '    <button class="switch ' + (s.reducedMotion?"on":"") + '" role="switch" aria-checked="' + (!!s.reducedMotion) + '" aria-label="' + t("reduireAnim") + '" onclick="toggleReducedMotion()"><span class="knob"></span></button></div>';
+  html += '  <div class="setting-row"><div><div class="setting-label">' + t("vibrations") + '</div><div class="setting-sub">' + t("vibrationsSub") + '</div></div>' +
+          '    <button class="switch ' + (s.vibrations?"on":"") + '" role="switch" aria-checked="' + (!!s.vibrations) + '" aria-label="' + t("vibrations") + '" onclick="toggleVibrations()"><span class="knob"></span></button></div>';
   html += '</div>';
 
   html += '<div class="glass section-card">';
-  html += '  <div class="section-title">Donn\u00e9es</div>';
-  html += '  <div class="setting-row"><div><div class="setting-label">Exporter la progression</div><div class="setting-sub">Sauvegarde en fichier .json</div></div><button class="btn btn-ghost" onclick="exportData()">Exporter</button></div>';
-  html += '  <div class="setting-row"><div><div class="setting-label">Importer une sauvegarde</div><div class="setting-sub">Restaure depuis un fichier .json</div></div><button class="btn btn-ghost" onclick="document.getElementById(\'importInput\').click()">Importer</button></div>';
+  html += '  <div class="section-title">' + t("donnees") + '</div>';
+  html += '  <div class="setting-row"><div><div class="setting-label">' + t("exporterProg") + '</div><div class="setting-sub">' + t("exporterSub") + '</div></div><button class="btn btn-ghost" onclick="exportData()">' + t("exportNow").replace(" maintenant","").replace(" now","") + '</button></div>';
+  html += '  <div class="setting-row"><div><div class="setting-label">' + t("importerProg") + '</div><div class="setting-sub">' + t("importerSub") + '</div></div><button class="btn btn-ghost" onclick="document.getElementById(\'importInput\').click()">' + t("importerProg").split(" ")[0] + '</button></div>';
   html += '  <input type="file" id="importInput" accept="application/json" onchange="importData(event)">';
-  html += '  <div class="setting-row"><div><div class="setting-label" style="color:var(--r-mythic);">R\u00e9initialiser</div><div class="setting-sub">Efface toute la progression</div></div><button class="btn btn-ghost" style="border-color:var(--r-mythic);color:var(--r-mythic);" onclick="resetAll()">R\u00e9initialiser</button></div>';
+  html += '  <div class="setting-row"><div><div class="setting-label" style="color:var(--r-mythic);">' + t("reinitialiser") + '</div><div class="setting-sub">' + t("reinitialiserSub") + '</div></div><button class="btn btn-ghost" style="border-color:var(--r-mythic);color:var(--r-mythic);" onclick="resetAll()">' + t("reinitialiser") + '</button></div>';
   html += '</div>';
 
   html += '<div class="glass section-card">';
-  html += '  <div class="section-title">\u{1f4f1} Communaut\u00e9</div>';
-  html += '  <div class="setting-row"><div><div class="setting-label">Suivre le d\u00e9veloppement</div><div class="setting-sub">Nouveaut\u00e9s, coulisses et mises \u00e0 jour de l\u2019app</div></div>' +
+  html += '  <div class="section-title">' + t("communaute") + '</div>';
+  html += '  <div class="setting-row"><div><div class="setting-label">' + t("suivreDev") + '</div><div class="setting-sub">' + t("suivreDevSub") + '</div></div>' +
           '    <button class="btn btn-ghost" onclick="window.open(\'' + TIKTOK_URL + '\', \'_blank\')">@spritedexapp64</button></div>';
-  html += '  <div class="setting-row"><div><div class="setting-label">Cha\u00eene YouTube</div><div class="setting-sub">Vid\u00e9os et tutos de l\u2019app</div></div>' +
+  html += '  <div class="setting-row"><div><div class="setting-label">' + t("chaineYoutube") + '</div><div class="setting-sub">' + t("chaineYoutubeSub") + '</div></div>' +
           '    <button class="btn btn-ghost" onclick="window.open(\'' + YOUTUBE_URL + '\', \'_blank\')">@spritedexapp</button></div>';
-  html += '  <div class="setting-row"><div><div class="setting-label">Signaler un bug / donner un avis</div><div class="setting-sub">Envoie-nous un message directement sur TikTok</div></div>' +
-          '    <button class="btn btn-ghost" onclick="window.open(\'' + TIKTOK_URL + '\', \'_blank\')">Contacter</button></div>';
-  html += '  <div class="setting-row"><div><div class="setting-label">Quoi de neuf</div><div class="setting-sub">L\u2019historique des mises \u00e0 jour de l\u2019app</div></div>' +
-          '    <button class="btn btn-ghost" onclick="goTo(\'changelog\')">Voir</button></div>';
+  html += '  <div class="setting-row"><div><div class="setting-label">' + t("signalerBug") + '</div><div class="setting-sub">' + t("signalerBugSub") + '</div></div>' +
+          '    <button class="btn btn-ghost" onclick="window.open(\'' + TIKTOK_URL + '\', \'_blank\')">' + t("contacter") + '</button></div>';
+  html += '  <div class="setting-row"><div><div class="setting-label">' + t("quoiDeNeuf") + '</div><div class="setting-sub">' + t("quoiDeNeufSub") + '</div></div>' +
+          '    <button class="btn btn-ghost" onclick="goTo(\'changelog\')">' + t("voir") + '</button></div>';
   html += '</div>';
 
   html += '<div class="glass section-card">';
-  html += '  <div class="section-title">\u2139\ufe0f \u00c0 propos des taux</div>';
+  html += '  <div class="section-title">' + t("aProposTaux") + '</div>';
   html += '  <div class="about-note">Taux "Base" issus d\'une table d\u00e9taill\u00e9e communautaire (AccountShark, maj 02/07/2026) \u2014 non officiels, Epic ne publie pas ces chiffres. Taux Gold/Gummy/Galaxy calcul\u00e9s avec un ratio observ\u00e9 sur Aura/Striker (Base\u2192Gold \u00f782, \u2192Gummy \u00f7143, \u2192Galaxy \u00f7287) puis extrapol\u00e9s aux autres Sprites.</div>';
   html += '  <div class="about-note">\u{1f48e} Le taux Holofoil est une pure estimation (encore plus rare que Galaxy) \u2014 Epic n\'a communiqu\u00e9 aucun chiffre officiel pour cette toute nouvelle variante sortie le 9 juillet.</div>';
   html += '  <div class="about-note">Temps de capture estim\u00e9 (\u23f1\ufe0f dans la fiche de chaque Sprite) = calcul th\u00e9orique en supposant ' + CHESTS_PER_MATCH + ' Coffres Sprite ouverts par partie sur ~' + MATCH_MINUTES + ' min de farm (zone dense type Sinister Strip). C\'est une moyenne statistique, pas une garantie : tu peux l\'obtenir bien plus vite... ou bien plus lentement.</div>';
   html += '  <div class="about-note">\u{1f465} % de joueurs qui l\'ont (dans la Collection) = m\u00eame logique, mais en supposant ' + SEASON_CHESTS + ' Coffres Sprite ouverts par un joueur actif sur toute la saison. Epic ne publie aucune vraie statistique l\u00e0-dessus \u2014 c\'est un calcul de probabilit\u00e9, pas une donn\u00e9e r\u00e9elle.</div>';
   html += '  <div class="about-note">\u{1f3ae} Le compteur "joueurs" sur l\'accueil s\'incr\u00e9mente automatiquement une fois par appareil, au tout premier lancement, via un service externe gratuit (CounterAPI). Aucune donn\u00e9e personnelle n\'est envoy\u00e9e \u2014 juste un +1 anonyme.</div>';
-  html += '  <div class="about-note">Sprite Dex \u00b7 application non officielle, non affili\u00e9e \u00e0 Epic Games.</div>';
+  html += '  <div class="about-note">' + t("appNonOfficielle") + '</div>';
   html += '</div>';
 
   return html;
 }
 
+function toggleLang(){
+  state.settings.lang = state.settings.lang === "fr" ? "en" : "fr";
+  persistSettings();
+  renderShell();
+  renderPage();
+}
 function toggleTheme(){
   state.settings.theme = state.settings.theme === "dark" ? "light" : "dark";
   applyTheme();
@@ -1777,6 +1913,75 @@ async function fetchUserCount(){
     return typeof data.count === "number" ? data.count : null;
   } catch(e) { return null; }
 }
+/* ----- Tableau des joueurs (pseudo public, partag\u00e9 entre tous) -----
+   "Un seul par personne" est appliqu\u00e9 en local : chaque appareil garde l'ID de
+   SA propre entr\u00e9e (localStorage) et ne peut modifier que celle-l\u00e0. Rien
+   n'emp\u00eache techniquement quelqu'un d'en cr\u00e9er plusieurs depuis des appareils
+   diff\u00e9rents \u2014 comme pour le compteur, c'est une r\u00e8gle de bonne foi, pas un
+   vrai verrou (aucun compte/mot de passe n'existe ici). */
+const KEY_MY_ENTRY_ID = "sprite-dex-leaderboard-entry-id";
+
+async function fetchLeaderboard(){
+  try {
+    const res = await fetch(LEADERBOARD_URL);
+    if (!res.ok) return null;
+    const data = await res.json();
+    return Array.isArray(data.users) ? data.users : [];
+  } catch(e) { return null; }
+}
+async function saveLeaderboard(users){
+  try {
+    const res = await fetch(LEADERBOARD_URL, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ users })
+    });
+    return res.ok;
+  } catch(e) { return false; }
+}
+function myEntryId(){
+  try { return localStorage.getItem(KEY_MY_ENTRY_ID); } catch(e) { return null; }
+}
+async function submitPseudo(){
+  const input = document.getElementById("pseudoInput");
+  if (!input) return;
+  const pseudo = input.value.trim().slice(0, 20);
+  if (!pseudo){ showToast("Entre un pseudo d'abord", "\u26a0\ufe0f"); return; }
+  const btn = document.getElementById("pseudoSubmitBtn");
+  if (btn) btn.textContent = "...";
+  const users = await fetchLeaderboard();
+  if (users === null){ showToast("Impossible de contacter le tableau", "\u26a0\ufe0f"); if (btn) btn.textContent = t("valider") || "Valider"; return; }
+  const myId = myEntryId();
+  let entry = users.find(u => u.id === myId);
+  if (entry){
+    entry.pseudo = pseudo;
+  } else {
+    entry = { id: "u" + Date.now() + Math.floor(Math.random()*10000), pseudo };
+    users.push(entry);
+    try { localStorage.setItem(KEY_MY_ENTRY_ID, entry.id); } catch(e) {}
+  }
+  const ok = await saveLeaderboard(users);
+  if (ok){ showToast("Pseudo enregistr\u00e9 !", "\u2728"); input.value = ""; renderLeaderboardList(); }
+  else { showToast("\u00c9chec de l'enregistrement", "\u26a0\ufe0f"); }
+  if (btn) btn.textContent = "Valider";
+}
+async function renderLeaderboardList(){
+  const el = document.getElementById("leaderboardList");
+  if (!el) return;
+  el.innerHTML = '<div class="empty-hint">Chargement...</div>';
+  const users = await fetchLeaderboard();
+  const el2 = document.getElementById("leaderboardList");
+  if (!el2) return;
+  if (users === null){ el2.innerHTML = '<div class="empty-hint">Tableau indisponible pour le moment.</div>'; return; }
+  if (!users.length){ el2.innerHTML = '<div class="empty-hint">Personne pour l\u2019instant \u2014 sois le premier !</div>'; return; }
+  const myId = myEntryId();
+  el2.innerHTML = users.slice().reverse().map(u =>
+    '<div class="achv-mini-row"><div class="ic" style="background:rgba(124,106,232,.14);border-color:rgba(124,106,232,.3);">\u{1f3ae}</div>' +
+    '<div class="n">' + escapeHtml(u.pseudo) + (u.id === myId ? ' <span style="color:var(--c-purple);font-size:.65rem;">(toi)</span>' : '') + '</div></div>'
+  ).join("");
+}
+
+
 function renderUserCountBadge(){
   const el = document.getElementById("userCountBadge");
   if (!el) return;
