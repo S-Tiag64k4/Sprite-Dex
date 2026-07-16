@@ -11,12 +11,12 @@
 <meta name="theme-color" content="#0B0D14">
 <meta name="description" content="Suivi de collection Sprite Dex — progression, statistiques, carte et succès.">
 <meta property="og:title" content="Sprite Dex — Tracker de collection Fortnite">
-<meta property="og:description" content="Suis ta progression sur les 66 collectibles de Fortnite : carte des zones, taux de drop, succès, niveau et plus.">
+<meta property="og:description" content="Suis ta progression sur les 76 collectibles de Fortnite : carte des zones, taux de drop, succès, niveau et plus.">
 <meta property="og:image" content="og-image.png">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Sprite Dex — Tracker de collection Fortnite">
-<meta name="twitter:description" content="Suis ta progression sur les 66 collectibles de Fortnite : carte des zones, taux de drop, succès, niveau et plus.">
+<meta name="twitter:description" content="Suis ta progression sur les 76 collectibles de Fortnite : carte des zones, taux de drop, succès, niveau et plus.">
 <meta name="twitter:image" content="og-image.png">
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%230B0D14'/%3E%3Ctext x='50' y='66' font-size='58' text-anchor='middle'%3E%E2%9C%A8%3C/text%3E%3C/svg%3E">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%230B0D14'/%3E%3Ctext x='50' y='66' font-size='58' text-anchor='middle'%3E%E2%9C%A8%3C/text%3E%3C/svg%3E">
@@ -451,6 +451,7 @@ const MAP_ZONES = [
 ];
 
 const NEWS = [
+  { date: "16/07/2026", title: "3 nouveaux Sprites : Air, Seven et Batman", desc: "Confirm\u00e9 par Epic dans le cadre du DC Summer Event \"Hot Bat Summer\". Air (immunit\u00e9 chute + vitesse), Seven (traces de pas ennemies, via Qu\u00eates Hebdo) et Batman (Mythic, pouvoirs encore inconnus). Une variante Cube serait aussi pr\u00e9vue, mais pas confirm\u00e9e disponible d\u00e8s aujourd'hui.", },
   { date: "20/07/2026", title: "Gem Sprites (attendus)", desc: "Selon des sources sp\u00e9cialis\u00e9es, une nouvelle vague de Sprites serait pr\u00e9vue la semaine suivant les Holofoil, avant la fin progressive de la m\u00e9canique en fin de saison. Non confirm\u00e9 par Epic.", isRumor: true },
   { date: "11/07/2026", title: "Holofoil Hours", desc: "Confirm\u00e9 par Epic : 2 sessions (14h et 21h ET), taux d'apparition des Sprites Holofoil largement boost\u00e9s.", },
   { date: "09/07/2026", title: "Sortie des Sprites Holofoil", desc: "Officiellement sorti ! 5 Sprites confirm\u00e9s pour l'instant : Water, Fire, Ghost, King et Striker (Epic en ajoutera d'autres progressivement). Chaque Holofoil donne +5% de chance pour toute la squad de trouver des variantes rares (Gold/Gummy/Galaxy) dans les coffres. M\u00eame lieu de drop que la version Normal, mais bien plus rare.", },
@@ -482,6 +483,9 @@ const SPRITES = [
   { id: "grim", name: "Grim Reaper", emoji: "\u{1f480}", rarity: "Legendary", drop: "0.000098%", added: "25/06/2026", note: "Marque les attaquants sur la carte \u2014 le plus rare du jeu", variants: ["base","gold","gummy","galaxy"], tip: "[ZONE CONSEILL\u00c9E] Pure chance. Sinister Strip pour maximiser le nombre d'ouvertures de coffres.", zone: "sinisterstrip" },
   { id: "zeropoint", name: "Zero Point", emoji: "\u{1f300}", rarity: "Mythic", drop: "1.044%", added: "06/06/2026", note: "Shield Bubble Jr. au soin \u2014 le plus rare des Sprites originaux", variants: ["base","gold","gummy","galaxy"], tip: "[CONFIRM\u00c9] Le Point Z\u00e9ro (centre de la carte) \u2014 Coffre Sprite d\u00e9di\u00e9 sur ce Landmark.", zone: "pointzero" },
   { id: "burntpeanut", name: "Burnt Peanut", emoji: "\u{1f95c}", rarity: "Mythic", drop: "1.5%", added: "06/06/2026", note: "Chance de loot bonus \u00e0 l'\u00e9lim \u2014 Normal uniquement, coffres reliques", variants: ["base"], tip: "[CONFIRM\u00c9] Coffres Reliques uniquement (pas les Coffres Sprite classiques).", zone: null },
+  { id: "air", name: "Air", emoji: "\u{1fa81}", rarity: "Epic", drop: "5.22%", added: "16/07/2026", note: "Immunit\u00e9 aux d\u00e9g\u00e2ts de chute, vitesse de sprint et hauteur de saut augment\u00e9es (progresse avec le niveau)", variants: ["base","gold","gummy","galaxy"], tip: "[ZONE CONSEILL\u00c9E] Sinister Strip \u2014 coffres classiques, sortie du 16/07.", zone: "sinisterstrip" },
+  { id: "seven", name: "Seven", emoji: "7\ufe0f\u20e3", rarity: "Legendary", drop: "2.436%", added: "16/07/2026", note: "Rend visibles les traces de pas des ennemis pour toute la squad (dur\u00e9e 10s \u2192 30s selon le niveau)", variants: ["base"], tip: "[CONFIRM\u00c9] D\u00e9bloqu\u00e9 en compl\u00e9tant les Qu\u00eates Hebdomadaires de l'event Hot Bat Summer \u2014 pas de RNG. Variantes suppl\u00e9mentaires non confirm\u00e9es pour l'instant.", zone: null },
+  { id: "batman", name: "Batman", emoji: "\u{1f987}", rarity: "Mythic", drop: "1.044%", added: "16/07/2026", note: "Pouvoirs encore inconnus au moment de la sortie (crossover DC Summer)", variants: ["base","gold","gummy","galaxy","holofoil"], tip: "[NON CONFIRM\u00c9] Coffres classiques, Mythic \u2014 infos sur ses pouvoirs \u00e0 venir de la communaut\u00e9.", zone: "sinisterstrip" },
 ];
 
 const ACHIEVEMENTS = [
@@ -777,6 +781,7 @@ function relTime(ts){
 }
 /* ----- Page Quoi de neuf ----- */
 const CHANGELOG = [
+  { version: "1.11", items: ["3 nouveaux Sprites du 16 juillet : Air, Seven et le crossover DC Batman", "19 Sprites au total maintenant (76 collectibles)", "Batman en Mythic avec variante Holofoil d\u00e8s sa sortie", "Seven se d\u00e9bloque via les Qu\u00eates Hebdomadaires (pas de RNG)"] },
   { version: "1.10", items: ["Nouvelle variante Holofoil (la plus rare, sortie officiellement le 9 juillet)", "Disponible sur Water, Fire, Ghost, King et Striker pour l'instant \u2014 Epic en ajoutera d'autres progressivement", "Nouveau succ\u00e8s \"Effet Miroir\" pour la premi\u00e8re capture Holofoil", "Total pass\u00e9 de 61 \u00e0 66 collectibles"] },
   { version: "1.9", items: ["Compteur de joueurs qui utilisent l'app (anonyme, sans donn\u00e9es personnelles)", "Liens TikTok (@spritedexapp64) et YouTube (@spritedexapp) dans Param\u00e8tres", "Page Quoi de neuf (celle-ci !)"] },
   { version: "1.8", items: ["\u00c9cran de bienvenue au tout premier lancement", "Bouton \"Partager ma progression\" (g\u00e9n\u00e8re une image)", "Aper\u00e7u stylis\u00e9 quand le lien est partag\u00e9 (Open Graph)", "Rappel de sauvegarde tous les 15 Sprites obtenus"] },
@@ -1054,7 +1059,7 @@ function renderPage(navDirection){
   c.innerHTML = '<div class="' + animClass + '">' + html + '</div>';
   // Actions post-rendu spécifiques à certaines pages
   if (state.page === "map") { attachMapGestures(); renderMapPins(); }
-  if (state.page === "home") { renderUserCountBadge(); renderLeaderboardList(); }
+  if (state.page === "home") { renderUserCountBadge(); }
   checkAchievements();
 }
 
@@ -1181,16 +1186,6 @@ function renderHome(){
   html += '</div>';
 
   html += renderChecklistSection();
-
-  html += '<div class="glass section-card">';
-  html += '  <div class="section-title">\u{1f465} Joueurs de Sprite Dex</div>';
-  html += '  <div class="setting-sub" style="margin-bottom:10px;">Ajoute ton pseudo pour appara\u00eetre dans la liste \u2014 visible par tout le monde. Un seul pseudo par personne (tu peux le modifier plus tard).</div>';
-  html += '  <div style="display:flex;gap:8px;margin-bottom:14px;">';
-  html += '    <input id="pseudoInput" type="text" maxlength="20" placeholder="Ton pseudo..." style="flex:1;background:var(--bg-glass);border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-size:.85rem;color:var(--text-0);outline:none;">';
-  html += '    <button id="pseudoSubmitBtn" class="btn btn-primary" style="padding:10px 16px;" onclick="submitPseudo()">Valider</button>';
-  html += '  </div>';
-  html += '  <div id="leaderboardList"><div class="empty-hint">Chargement...</div></div>';
-  html += '</div>';
 
   html += '<div class="glass section-card">';
   html += '  <div class="section-title">' + ICONS.sparkle.replace('<svg ', '<svg class="ico" ') + '' + t("derniersSprites") + '</div>';
