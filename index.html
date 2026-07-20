@@ -451,6 +451,7 @@ const MAP_ZONES = [
 ];
 
 const NEWS = [
+  { date: "18/07/2026", title: "Live sp\u00e9cial : \u00e9limine Pollo pour son Sprite", desc: "Le pro joueur Pollo (Miguel Moreno) joue en live \u00e0 14h CST/15h ET sur le serveur NA Central. C'est temporairement la SEULE fa\u00e7on d'obtenir son Sprite (\u00e9lim directe, \u00e9lim d'un joueur qui l'a d\u00e9j\u00e0, ou \u00e9change). Passera en Coffres Sprite classiques \u00e0 partir du ~23/07.", },
   { date: "18/07/2026", title: "Shiny Hours (Batman)", desc: "2 sessions le samedi 18 juillet : taux Gold/Gummy/Galaxy/Holofoil de Batman largement boost\u00e9s. Chaque joueur d\u00e9marre en plus avec un Grappin Batman et un Appareil d'auto-r\u00e9animation.", },
   { date: "16/07/2026", title: "3 nouveaux Sprites : Air, Seven et Batman", desc: "Confirm\u00e9 par Epic dans le cadre du DC Summer Event \"Hot Bat Summer\". Air (immunit\u00e9 chute + vitesse), Seven (traces de pas ennemies, via Qu\u00eates Hebdo) et Batman (Mythic, pouvoirs encore inconnus). Une variante Cube serait aussi pr\u00e9vue, mais pas confirm\u00e9e disponible d\u00e8s aujourd'hui.", },
   { date: "20/07/2026", title: "Gem Sprites (attendus)", desc: "Selon des sources sp\u00e9cialis\u00e9es, une nouvelle vague de Sprites serait pr\u00e9vue la semaine suivant les Holofoil, avant la fin progressive de la m\u00e9canique en fin de saison. Non confirm\u00e9 par Epic.", isRumor: true },
@@ -488,7 +489,7 @@ const SPRITES = [
   { id: "seven", name: "Seven", emoji: "7\ufe0f\u20e3", rarity: "Legendary", drop: "6.98%", added: "16/07/2026", note: "Rend visibles les traces de pas des ennemis pour toute la squad (dur\u00e9e 10s \u2192 30s selon le niveau)", variants: ["base","gold","gummy","galaxy","holofoil"], tip: "[CONFIRM\u00c9] Trouv\u00e9 dans les Coffres Sprite classiques, comme les autres \u2014 PAS li\u00e9 aux Qu\u00eates Hebdomadaires (contrairement \u00e0 une premi\u00e8re info erron\u00e9e). Sinister Strip conseill\u00e9.", zone: "sinisterstrip" },
   { id: "batman", name: "Batman", emoji: "\u{1f987}", rarity: "Mythic", drop: "1.044%", added: "16/07/2026", note: "Permet de se relancer en l'air et de d\u00e9ployer la Cape de Batman (glider redeploy)", variants: ["base","gold","gummy","galaxy","holofoil"], tip: "[CONFIRM\u00c9] Coffres Sprite classiques. Meilleur taux pendant les Shiny Hours (18/07, 2 sessions).", zone: "sinisterstrip" },
   { id: "vinijr", name: "Vini Jr.", emoji: "\u{1f45f}", rarity: "Mythic", drop: "1.044%", added: "16/07/2026", note: "Glissade destructrice en sprint ; slide-kick sur un ennemi augmente cadence de tir et vitesse de rechargement", variants: ["base"], tip: "[CONFIRM\u00c9] Coffres Sprite et loot al\u00e9atoire, sans variante \u2014 collab Coupe du Monde 2026 (Vinicius Jr.).", zone: "sinisterstrip" },
-  { id: "pollo", name: "Pollo", emoji: "\u{1f414}", rarity: "Mythic", drop: "1.044%", added: "16/07/2026", note: "\u00c0 l'\u00e9limination, r\u00e9g\u00e9n\u00e8re lentement le bouclier pour vous et la squad \u00e0 proximit\u00e9", variants: ["base"], tip: "[CONFIRM\u00c9] Coffres Sprite/loot al\u00e9atoire ET Qu\u00eates Hebdomadaires selon les sources \u2014 collab Coupe du Monde 2026, sans variante.", zone: "sinisterstrip" },
+  { id: "pollo", name: "Pollo", emoji: "\u{1f414}", rarity: "Mythic", drop: "1.044%", added: "16/07/2026", note: "\u00c0 l'\u00e9limination, r\u00e9g\u00e9n\u00e8re lentement le bouclier pour vous et la squad \u00e0 proximit\u00e9", variants: ["base"], tip: "[CONFIRM\u00c9] Sprite unique en son genre : au d\u00e9part, seule fa\u00e7on de l'obtenir \u2014 \u00e9liminer le vrai joueur pro Pollo (Miguel Moreno) pendant son live du 18/07, ou \u00e9liminer/\u00e9changer avec un joueur qui l'a d\u00e9j\u00e0. Devient disponible en Coffres Sprite classiques \u00e0 partir de la semaine suivante (~23/07).", zone: "sinisterstrip" },
 ];
 
 const ACHIEVEMENTS = [
@@ -640,7 +641,7 @@ function showWarnStorage(){
 /* ----------------------------------------------------------------
    3. UTILITAIRES
    ---------------------------------------------------------------- */
-const VARIANT_MULT = { base: 1, gold: 0.0122, gummy: 0.00697, galaxy: 0.00348, holofoil: 0.0015 };
+const VARIANT_MULT = { base: 1, gold: 0.0122, gummy: 0.00697, galaxy: 0.00348, holofoil: 0.00716 };
 function parseRange(str) {
   const m1 = str.match(/([\d.]+)-([\d.]+)%/);
   if (m1) return [parseFloat(m1[1]), parseFloat(m1[2])];
@@ -666,8 +667,8 @@ function variantRateLabel(sprite, variantKey) {
    Calcul : esp\u00e9rance du nombre d'essais pour un premier succ\u00e8s = 1 / p (loi g\u00e9om\u00e9trique),
    converti en parties puis en dur\u00e9e. C'est une moyenne th\u00e9orique, pas une garantie :
    la vraie dur\u00e9e peut varier \u00e9norm\u00e9ment d'une tentative \u00e0 l'autre. */
-const TIKTOK_URL = "https://www.tiktok.com/@spritedexapp64";
-const YOUTUBE_URL = "https://youtube.com/@spritedexapp";
+const YOUTUBE_URL = "https://youtube.com/@spritedexappofficiel";
+const TWITCH_URL = "https://www.twitch.tv/tiag64270";
 // Compteur public via CounterAPI (aucune inscription requise, aucune donn\u00e9e personnelle
 // envoy\u00e9e \u2014 juste un +1 anonyme). Incr\u00e9ment\u00e9 une seule fois par appareil, au tout
 // premier lancement, pour approximer le nombre de personnes diff\u00e9rentes ayant essay\u00e9
@@ -923,6 +924,7 @@ const I18N = {
     reinitialiser: "R\u00e9initialiser", reinitialiserSub: "Efface toute la progression",
     communaute: "\u{1f4f1} Communaut\u00e9", suivreDev: "Suivre le d\u00e9veloppement", suivreDevSub: "Nouveaut\u00e9s, coulisses et mises \u00e0 jour de l\u2019app",
     chaineYoutube: "Cha\u00eene YouTube", chaineYoutubeSub: "Vid\u00e9os et tutos de l\u2019app",
+    chaineTwitch: "Twitch", chaineTwitchSub: "Live parfois en direct sur l'app et Fortnite",
     signalerBug: "Signaler un bug / donner un avis", signalerBugSub: "Envoie-nous un message directement sur TikTok", contacter: "Contacter",
     quoiDeNeuf: "Quoi de neuf", quoiDeNeufSub: "L\u2019historique des mises \u00e0 jour de l\u2019app", voir: "Voir",
     aProposTaux: "\u2139\ufe0f \u00c0 propos des taux",
@@ -974,6 +976,7 @@ const I18N = {
     reinitialiser: "Reset", reinitialiserSub: "Erases all progress",
     communaute: "\u{1f4f1} Community", suivreDev: "Follow development", suivreDevSub: "Updates, behind the scenes and app news",
     chaineYoutube: "YouTube channel", chaineYoutubeSub: "App videos and tutorials",
+    chaineTwitch: "Twitch", chaineTwitchSub: "Sometimes live streaming the app and Fortnite",
     signalerBug: "Report a bug / give feedback", signalerBugSub: "Send us a message directly on TikTok", contacter: "Contact",
     quoiDeNeuf: "What's new", quoiDeNeufSub: "The app's update history", voir: "View",
     aProposTaux: "\u2139\ufe0f About the rates",
@@ -1214,7 +1217,7 @@ function renderHome(){
   html += '  <button class="btn btn-ghost btn-block" style="margin-top:12px;" onclick="goTo(\'achievements\')">' + t("voirTousSucces") + ' (' + unlocked.length + '/' + ACHIEVEMENTS.length + ')</button>';
   html += '</div>';
 
-  html += '<div style="text-align:center;font-size:.72rem;color:var(--text-2);margin:18px 0 6px;">Sprite Dex est fait maison \u2014 <a href="' + TIKTOK_URL + '" target="_blank" style="color:var(--c-purple);font-weight:700;">suis @spritedexapp64 sur TikTok</a></div>';
+  html += '<div style="text-align:center;font-size:.72rem;color:var(--text-2);margin:18px 0 6px;">Sprite Dex est fait maison \u2014 <a href="' + YOUTUBE_URL + '" target="_blank" style="color:var(--c-purple);font-weight:700;">suis @spritedexappofficiel sur YouTube</a></div>';
 
   return html;
 }
@@ -1741,12 +1744,12 @@ function renderSettings(){
 
   html += '<div class="glass section-card">';
   html += '  <div class="section-title">' + t("communaute") + '</div>';
-  html += '  <div class="setting-row"><div><div class="setting-label">' + t("suivreDev") + '</div><div class="setting-sub">' + t("suivreDevSub") + '</div></div>' +
-          '    <button class="btn btn-ghost" onclick="window.open(\'' + TIKTOK_URL + '\', \'_blank\')">@spritedexapp64</button></div>';
   html += '  <div class="setting-row"><div><div class="setting-label">' + t("chaineYoutube") + '</div><div class="setting-sub">' + t("chaineYoutubeSub") + '</div></div>' +
-          '    <button class="btn btn-ghost" onclick="window.open(\'' + YOUTUBE_URL + '\', \'_blank\')">@spritedexapp</button></div>';
+          '    <button class="btn btn-ghost" onclick="window.open(\'' + YOUTUBE_URL + '\', \'_blank\')">@spritedexappofficiel</button></div>';
+  html += '  <div class="setting-row"><div><div class="setting-label">' + t("chaineTwitch") + '</div><div class="setting-sub">' + t("chaineTwitchSub") + '</div></div>' +
+          '    <button class="btn btn-ghost" onclick="window.open(\'' + TWITCH_URL + '\', \'_blank\')">tiag64270</button></div>';
   html += '  <div class="setting-row"><div><div class="setting-label">' + t("signalerBug") + '</div><div class="setting-sub">' + t("signalerBugSub") + '</div></div>' +
-          '    <button class="btn btn-ghost" onclick="window.open(\'' + TIKTOK_URL + '\', \'_blank\')">' + t("contacter") + '</button></div>';
+          '    <button class="btn btn-ghost" onclick="window.open(\'' + YOUTUBE_URL + '\', \'_blank\')">' + t("contacter") + '</button></div>';
   html += '  <div class="setting-row"><div><div class="setting-label">' + t("quoiDeNeuf") + '</div><div class="setting-sub">' + t("quoiDeNeufSub") + '</div></div>' +
           '    <button class="btn btn-ghost" onclick="goTo(\'changelog\')">' + t("voir") + '</button></div>';
   html += '</div>';
@@ -1754,7 +1757,7 @@ function renderSettings(){
   html += '<div class="glass section-card">';
   html += '  <div class="section-title">' + t("aProposTaux") + '</div>';
   html += '  <div class="about-note">Taux "Base" issus d\'une table d\u00e9taill\u00e9e communautaire (AccountShark, maj 02/07/2026) \u2014 non officiels, Epic ne publie pas ces chiffres. Taux Gold/Gummy/Galaxy calcul\u00e9s avec un ratio observ\u00e9 sur Aura/Striker (Base\u2192Gold \u00f782, \u2192Gummy \u00f7143, \u2192Galaxy \u00f7287) puis extrapol\u00e9s aux autres Sprites.</div>';
-  html += '  <div class="about-note">\u{1f48e} Le taux Holofoil est une pure estimation (encore plus rare que Galaxy) \u2014 Epic n\'a communiqu\u00e9 aucun chiffre officiel pour cette toute nouvelle variante sortie le 9 juillet.</div>';
+  html += '  <div class="about-note">\u{1f48e} Le taux Holofoil est calcul\u00e9 \u00e0 partir de vrais chiffres confirm\u00e9s sur Seven (Normal 6.98% \u2192 Holofoil 0.05%, source fortnite.gg), puis extrapol\u00e9 aux autres Sprites \u2014 Epic ne publie toujours aucun chiffre officiel direct.</div>';
   html += '  <div class="about-note">Temps de capture estim\u00e9 (\u23f1\ufe0f dans la fiche de chaque Sprite) = calcul th\u00e9orique en supposant ' + CHESTS_PER_MATCH + ' Coffres Sprite ouverts par partie sur ~' + MATCH_MINUTES + ' min de farm (zone dense type Sinister Strip). C\'est une moyenne statistique, pas une garantie : tu peux l\'obtenir bien plus vite... ou bien plus lentement.</div>';
   html += '  <div class="about-note">\u{1f465} % de joueurs qui l\'ont (dans la Collection) = m\u00eame logique, mais en supposant ' + SEASON_CHESTS + ' Coffres Sprite ouverts par un joueur actif sur toute la saison. Epic ne publie aucune vraie statistique l\u00e0-dessus \u2014 c\'est un calcul de probabilit\u00e9, pas une donn\u00e9e r\u00e9elle.</div>';
   html += '  <div class="about-note">\u{1f3ae} Le compteur "joueurs" sur l\'accueil s\'incr\u00e9mente automatiquement une fois par appareil, au tout premier lancement, via un service externe gratuit (CounterAPI). Aucune donn\u00e9e personnelle n\'est envoy\u00e9e \u2014 juste un +1 anonyme.</div>';
